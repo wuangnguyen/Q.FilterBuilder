@@ -1,0 +1,57 @@
+﻿{
+  "condition": "AND",
+  "rules": [
+    {
+      "id": "tag",
+      "field": "tag",
+      "type": "string",
+      "operator": "contains",
+      "value": [ "tag1", "tag2" ]
+    },
+    {
+      "id": "age",
+      "field": "age",
+      "type": "integer",
+      "operator": "between",
+      "value": [ 20, 30 ]
+    },
+    {
+      "id": "purchaseDate",
+      "field": "purchaseDate",
+      "type": "datetime",
+      "operator": "between",
+      "value": [ "2023-08-15", "2024-08-15" ]
+    },
+    {
+      "id": "objectArray",
+      "field": "objectArray",
+      "type": "object",
+      "operator": "contains",
+      "value": [
+        {
+          "id": 123,
+          "name": "test1"
+        },
+        {
+          "id": 456,
+          "name": "test2"
+        }
+      ]
+    },
+    {
+      "condition": "OR",
+      "rules": [
+        {
+          "id": "singleObject",
+          "field": "singleObject",
+          "type": "object",
+          "operator": "between",
+          "value": {
+            "abc": "testAbc",
+            "xyz": "testXyz"
+          }
+        }
+      ]
+    }
+  ]
+}

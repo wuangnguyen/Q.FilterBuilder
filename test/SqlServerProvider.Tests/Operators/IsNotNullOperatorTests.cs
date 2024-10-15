@@ -1,0 +1,23 @@
+using DynamicWhere.Core.Models;
+using DynamicWhere.SqlServerProvider.Operators;
+using Shouldly;
+
+namespace SqlServerProvider.Tests.Operators
+{
+    public class IsNotNullOperatorTests
+    {
+        [Fact]
+        public void GetQueryPart_ShouldReturnCorrectSqlExpression()
+        {
+            // Arrange
+            var op = new IsNotNullOperator();
+            var rule = new DynamicRule { FieldName = "Name" };
+
+            // Act
+            var result = op.GetQueryPart(rule, 0);
+
+            // Assert
+            result.ShouldBe("Name IS NOT NULL");
+        }
+    }
+}
