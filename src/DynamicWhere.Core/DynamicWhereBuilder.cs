@@ -1,8 +1,8 @@
-﻿using DynamicWhere.Core.Providers;
-using DynamicWhere.Core.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using DynamicWhere.Core.Models;
+using DynamicWhere.Core.Providers;
 
 namespace DynamicWhere.Core;
 
@@ -46,7 +46,7 @@ public class DynamicWhereBuilder : IDynamicWhereBuilder
             var localParameters = new List<object>();
             var localParameterIndex = startParameterIndex;
             bool isFirst = true;
-
+            
             void AppendCondition(string condition)
             {
                 if (!isFirst)

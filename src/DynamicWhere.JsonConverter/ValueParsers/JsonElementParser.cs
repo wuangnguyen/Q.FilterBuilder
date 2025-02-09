@@ -6,6 +6,12 @@ namespace DynamicWhere.JsonConverter.ValueParsers;
 
 public static class JsonElementParser
 {
+    /// <summary>
+    /// Parses a JsonElement to its corresponding .NET type.
+    /// </summary>
+    /// <param name="element"></param>
+    /// <returns> The parsed value as an object. </returns>
+    /// <exception cref="NotSupportedException"></exception>
     public static object? ParseJsonElement(JsonElement element)
     {
         return element.ValueKind switch
@@ -20,6 +26,11 @@ public static class JsonElementParser
         };
     }
 
+    /// <summary>
+    /// Parses a JsonElement to its corresponding .NET type.
+    /// </summary>
+    /// <param name="element"></param>
+    /// <returns> The parsed value as an object. </returns>
     public static object? ParseObject(JsonElement element)
     {
         var dictionary = new Dictionary<string, object?>();

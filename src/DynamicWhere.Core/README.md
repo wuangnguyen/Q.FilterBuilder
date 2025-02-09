@@ -1,5 +1,4 @@
 # DynamicWhere.Core Library Summary
-# DynamicWhere.Core
 
 DynamicWhere.Core is a flexible library for building dynamic WHERE clauses in SQL queries. It provides a type-safe way to construct complex query conditions based on runtime data.
 
@@ -68,10 +67,10 @@ DynamicWhere.Core is a flexible library for building dynamic WHERE clauses in SQ
 - Supports collection and single value conversions
 
 ## Key Features
-1. Flexible query building with support for nested groups and rules
-2. Extensible operator system
-3. Type conversion and datetime parsing utilities
-4. Parameterized query generation for security
+1. Flexible query building with support for nested groups and rules.
+2. Extensible operator system.
+3. Type conversion and datetime parsing utilities.
+4. Parameterized query generation for security.
 
 This library provides a robust framework for building dynamic WHERE clauses in SQL queries, with support for complex conditions, custom operators, and type conversions.
 
@@ -79,18 +78,19 @@ This library provides a robust framework for building dynamic WHERE clauses in S
 
 ## Introduction
 
-The DynamicWhereBuilder is a flexible and powerful tool for constructing dynamic WHERE clauses in SQL queries. It allows you to build complex query conditions based on runtime data, without writing raw SQL strings.
+The DynamicWhereBuilder is a flexible and powerful tool for constructing dynamic WHERE clauses in SQL queries. It allows you to build complex query conditions based on runtime data without writing raw SQL strings.
 
 ## Getting Started
 
 1. Add the DynamicWhere.Core namespace to your project.
 2. Create an instance of `DynamicWhereBuilder`.
 
-csharp
+```csharp
 using DynamicWhere.Core;
 using DynamicWhere.Core.Models;
 using DynamicWhere.Core.Providers;
 var builder = new DynamicWhereBuilder();
+```
 
 ## Building a Query
 
@@ -98,97 +98,72 @@ var builder = new DynamicWhereBuilder();
 
 A `DynamicGroup` represents a set of conditions that are combined with a logical operator (AND/OR).
 
-write document for these files
-
-Here's a brief documentation for the DateTimeHelper class in the DynamicWhere.Core.Helpers namespace:
-csharp
-public static bool TryParseDateTime(string dateTimeString, out DateTime result, params string[] customFormats)
-csharp
-string dateString = "2023-04-15 14:30:00";
-if (DateTimeHelper.TryParseDateTime(dateString, out DateTime parsedDate))
-{
-Console.WriteLine($"Parsed date: {parsedDate}");
-}
-else
-{
-Console.WriteLine("Failed to parse date");
-}
-
-csharp
-using DynamicWhere.Core;
-using DynamicWhere.Core.Models;
-using DynamicWhere.Core.Providers;
-var builder = new DynamicWhereBuilder();
-csharp
+```csharp
 var group = new DynamicGroup
 {
-Condition = "AND",
-Rules = new List<DynamicRule>(),
-Groups = new List<DynamicGroup>()
+    Condition = "AND",
+    Rules = new List<DynamicRule>(),
+    Groups = new List<DynamicGroup>()
 };
-
-csharp
-var group = new DynamicGroup
-{
-Condition = "AND",
-Rules = new List<DynamicRule>(),
-Groups = new List<DynamicGroup>()
-};
+```
 
 ### 2. Add DynamicRules
 
 A `DynamicRule` represents a single condition in the WHERE clause.
 
-csharp
+```csharp
 group.Rules.Add(new DynamicRule
 {
-FieldName = "Age",
-Operator = "greater_or_equal",
-Value = 18,
-Type = "int"
+    FieldName = "Age",
+    Operator = "greater_or_equal",
+    Value = 18,
+    Type = "int"
 });
 group.Rules.Add(new DynamicRule
 {
-FieldName = "Name",
-Operator = "equal",
-Value = "John",
-Type = "string"
+    FieldName = "Name",
+    Operator = "equal",
+    Value = "John",
+    Type = "string"
 });
+```
 
 ### 3. Add Nested Groups (Optional)
 
 You can create nested conditions by adding sub-groups to the main group.
 
-csharp
+```csharp
 var subGroup = new DynamicGroup
 {
-Condition = "OR",
-Rules = new List<DynamicRule>
-{
-new DynamicRule
-{
-FieldName = "City",
-Operator = "equal",
-Value = "New York",
-Type = "string"
-},
-new DynamicRule
-{
-FieldName = "City",
-Operator = "equal",
-Value = "Los Angeles",
-Type = "string"
-}
-}
+    Condition = "OR",
+    Rules = new List<DynamicRule>
+    {
+        new DynamicRule
+        {
+            FieldName = "City",
+            Operator = "equal",
+            Value = "New York",
+            Type = "string"
+        },
+        new DynamicRule
+        {
+            FieldName = "City",
+            Operator = "equal",
+            Value = "Los Angeles",
+            Type = "string"
+        }
+    }
 };
 group.Groups.Add(subGroup);
+```
 
 ### 4. Build the WHERE Clause
 
 Use the `Build` method of `DynamicWhereBuilder` to generate the WHERE clause and parameters.
 
-csharp
+```csharp
 var (whereClause, parameters) = builder.Build(group);
+```
 
 ## Using the Result
 
@@ -198,43 +173,25 @@ The `Build` method returns a tuple containing:
 
 You can use these in your database query:
 
-csharp
+```csharp
 using (var connection = new SqlConnection(connectionString))
 {
-connection.Open();
-var query = $"SELECT FROM Users WHERE {whereClause}";
-var result = connection.Query(query, parameters);
+    connection.Open();
+    var query = $"SELECT FROM Users WHERE {whereClause}";
+    var result = connection.Query(query, parameters);
 }
+```
 
-
-csharp
-using (var connection = new SqlConnection(connectionString))
-{
-connection.Open();
-var query = $"SELECT FROM Users WHERE {whereClause}";
-var result = connection.Query(query, parameters);
-}
-
-csharp
-public class CustomOperatorProvider : BaseOperatorProvider
-{
-public CustomOperatorProvider()
-{
-AddOperator("contains", new ContainsOperator());
-}
-}
-var builder = new DynamicWhereBuilder(new CustomOperatorProvider());
-
-### Custom Type Conversions
+## Custom Type Conversions
 
 You can add custom type mappings using the `TypeConversionHelper`:
 
-csharp
+```csharp
 TypeConversionHelper.MergeCustomTypeMapping(new Dictionary<string, Type>
 {
-{ "custom_type", typeof(YourCustomType) }
+    { "custom_type", typeof(YourCustomType) }
 });
-
+```
 
 ## Best Practices
 

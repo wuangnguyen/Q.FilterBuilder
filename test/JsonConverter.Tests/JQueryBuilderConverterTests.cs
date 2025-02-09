@@ -198,5 +198,38 @@ namespace JsonConverter.Tests
             group.ShouldNotBeNull();
             group.Rules.Count.ShouldBe(0);
         }
+
+        [Fact]
+        public void Should_Serialize_DynamicGroup()
+        {
+            // Arrange
+            var dynamicGroup = new DynamicGroup
+            {
+                Condition = "AND",
+                Rules = new List<DynamicRule>
+                {
+                    new DynamicRule { FieldName = "name", Operator = "equal", Value = "value1" },
+                    new DynamicRule { FieldName = "age", Operator = "less", Value = 20 }
+                },
+                Groups = new List<DynamicGroup>
+                {
+                    new DynamicGroup
+                    {
+                        Condition = "OR",
+                        Rules = new List<DynamicRule>
+                        {
+                            new DynamicRule { FieldName = "gender", Operator = "equal", Value = false },
+                            new DynamicRule { FieldName = "money", Operator = "greater", Value = 3000.00 }
+                        }
+                    }
+                }
+            };
+
+            // Act
+            string json = JsonSerializer.Serialize(dynamicGroup, options);
+
+            // Assert
+            json.ShouldNotBeNullOrEmpty();
+        }
     }
 }
