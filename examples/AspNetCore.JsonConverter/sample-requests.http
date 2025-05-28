@@ -1,0 +1,203 @@
+### Sample requests for testing Q.FilterBuilder JsonConverter
+
+### 1. Basic filter with explicit converter
+POST https://localhost:7000/api/filter/parse-explicit
+Content-Type: application/json
+
+{
+    "condition": "AND",
+    "rules": [
+        {
+            "field": "Name",
+            "operator": "equal",
+            "value": "John Doe",
+            "type": "string"
+        },
+        {
+            "field": "Age",
+            "operator": "greater",
+            "value": 25,
+            "type": "int"
+        }
+    ]
+}
+
+### 2. Filter with global converter (model binding)
+POST https://localhost:7000/api/filter/parse-global
+Content-Type: application/json
+
+{
+    "condition": "OR",
+    "rules": [
+        {
+            "field": "Status",
+            "operator": "in",
+            "value": ["Active", "Pending", "Approved"],
+            "type": "string"
+        },
+        {
+            "field": "IsVip",
+            "operator": "equal",
+            "value": true,
+            "type": "bool"
+        }
+    ]
+}
+
+### 3. Complex nested filter
+POST https://localhost:7000/api/filter/process
+Content-Type: application/json
+
+{
+    "condition": "AND",
+    "rules": [
+        {
+            "field": "Department",
+            "operator": "equal",
+            "value": "Engineering",
+            "type": "string"
+        },
+        {
+            "condition": "OR",
+            "rules": [
+                {
+                    "field": "Experience",
+                    "operator": "greater_equal",
+                    "value": 5,
+                    "type": "int"
+                },
+                {
+                    "field": "HasCertification",
+                    "operator": "equal",
+                    "value": true,
+                    "type": "bool"
+                }
+            ]
+        }
+    ]
+}
+
+### 4. Filter with metadata
+POST https://localhost:7000/api/filter/process
+Content-Type: application/json
+
+{
+    "condition": "AND",
+    "rules": [
+        {
+            "field": "CreatedDate",
+            "operator": "between",
+            "value": ["2023-01-01", "2023-12-31"],
+            "type": "datetime",
+            "data": {
+                "dateFormat": "yyyy-MM-dd",
+                "timezone": "UTC",
+                "includeTime": false
+            }
+        },
+        {
+            "field": "Price",
+            "operator": "range",
+            "value": [10.50, 99.99],
+            "type": "decimal",
+            "data": {
+                "currency": "USD",
+                "precision": 2
+            }
+        }
+    ]
+}
+
+### 5. React Query Builder format (with combinator)
+POST https://localhost:7000/api/filter/parse-explicit
+Content-Type: application/json
+
+{
+    "combinator": "and",
+    "rules": [
+        {
+            "field": "firstName",
+            "operator": "=",
+            "value": "John"
+        },
+        {
+            "combinator": "or",
+            "rules": [
+                {
+                    "field": "age",
+                    "operator": ">",
+                    "value": 30
+                },
+                {
+                    "field": "city",
+                    "operator": "in",
+                    "value": ["New York", "Los Angeles", "Chicago"]
+                }
+            ]
+        }
+    ]
+}
+
+### 6. Validation test
+POST https://localhost:7000/api/filter/validate
+Content-Type: application/json
+
+{
+    "condition": "AND",
+    "rules": [
+        {
+            "field": "Email",
+            "operator": "contains",
+            "value": "@company.com",
+            "type": "string"
+        },
+        {
+            "field": "LastLogin",
+            "operator": "greater",
+            "value": "2023-01-01",
+            "type": "datetime"
+        }
+    ]
+}
+
+### 7. Invalid filter (for error testing)
+POST https://localhost:7000/api/filter/validate
+Content-Type: application/json
+
+{
+    "condition": "",
+    "rules": [
+        {
+            "field": "",
+            "operator": "equal",
+            "value": "test"
+        }
+    ]
+}
+
+### 8. Mixed data types
+POST https://localhost:7000/api/filter/process
+Content-Type: application/json
+
+{
+    "condition": "AND",
+    "rules": [
+        {
+            "field": "MixedArray",
+            "operator": "in",
+            "value": [1, "text", true, null, 3.14],
+            "type": "mixed"
+        },
+        {
+            "field": "Settings",
+            "operator": "contains",
+            "value": {
+                "theme": "dark",
+                "notifications": true,
+                "maxItems": 50,
+                "features": ["search", "filter", "sort"]
+            },
+            "type": "object"
+        }
+    ]
+}
