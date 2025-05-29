@@ -147,7 +147,7 @@ var (query, parameters) = filterBuilder.Build(group);
 | `contains`, `begins_with`, `ends_with` | String operations | `Name LIKE '%John%'` |
 | `is_null`, `is_not_null` | Null checks | `Email IS NOT NULL` |
 
-📖 **Complete Reference**: [Rule Transformers Guide](src/Q.FilterBuilder.Core/README.md#rule-transformers)
+📖 **Complete Reference**: [Rule Transformers Guide](src/Q.FilterBuilder.Core/README.md#custom-rule-transformers)
 
 ## 🧪 Testing
 
@@ -167,12 +167,12 @@ dotnet test FilterBuilder.sln
 
 For detailed implementation guidance, refer to the individual project README files:
 
-- **[Core Package](../Q.FilterBuilder.Core/README.md)** - Foundation components and manual setup
-- **[SQL Server Provider](../Q.FilterBuilder.SqlServer/README.md)** - SQL Server specific implementation
-- **[MySQL Provider](../Q.FilterBuilder.MySql/README.md)** - MySQL specific implementation
-- **[PostgreSQL Provider](../Q.FilterBuilder.PostgreSql/README.md)** - PostgreSQL specific implementation
-- **[LINQ Provider](../Q.FilterBuilder.Linq/README.md)** - LINQ expressions and Entity Framework
-- **[JSON Converter](../Q.FilterBuilder.JsonConverter/README.md)** - jQuery QueryBuilder integration
+- **[Core Package](src/Q.FilterBuilder.Core/README.md)** - Foundation components and manual setup
+- **[SQL Server Provider](src/Q.FilterBuilder.SqlServer/README.md)** - SQL Server specific implementation
+- **[MySQL Provider](src/Q.FilterBuilder.MySql/README.md)** - MySQL specific implementation
+- **[PostgreSQL Provider](src/Q.FilterBuilder.PostgreSql/README.md)** - PostgreSQL specific implementation
+- **[LINQ Provider](src/Q.FilterBuilder.Linq/README.md)** - LINQ expressions and Entity Framework
+- **[JSON Converter](src/Q.FilterBuilder.JsonConverter/README.md)** - jQuery QueryBuilder integration
 
 ## 🔌 Extensions
 
@@ -214,7 +214,7 @@ var group = JsonSerializer.Deserialize<FilterGroup>(json, jqueryOptions);
 - **Custom Database Providers**: Support new databases
 - **Custom Type Converters**: Handle specialized data types
 
-📖 **Extension Guides**: [Core Extensions](src/Q.FilterBuilder.Core/README.md#extending)
+📖 **Extension Guides**: [Core Extensions](src/Q.FilterBuilder.Core/README.md#advanced-usage)
 
 ## 🤝 Contributing
 

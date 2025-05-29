@@ -1,15 +1,14 @@
-using Q.FilterBuilder.SqlServer;
 using Xunit;
 
 namespace Q.FilterBuilder.SqlServer.Tests;
 
 public class SqlServerProviderTests
 {
-    private readonly SqlServerProvider _provider;
+    private readonly SqlServerFormatProvider _provider;
 
     public SqlServerProviderTests()
     {
-        _provider = new SqlServerProvider();
+        _provider = new SqlServerFormatProvider();
     }
 
     [Fact]

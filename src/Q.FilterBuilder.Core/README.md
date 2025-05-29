@@ -29,11 +29,11 @@ using Q.FilterBuilder.Core.Extensions;
 using Q.FilterBuilder.Core.Providers;
 
 // Register with a specific database provider
-services.AddFilterBuilder(new SqlServerProvider());
+services.AddFilterBuilder(new SqlServerFormatProvider());
 
 // Or register with custom services
 services.AddFilterBuilder(
-    new SqlServerProvider(),
+    new SqlServerFormatProvider(),
     typeConversion => {
         // Configure custom type converters
     },
@@ -78,7 +78,7 @@ public class DataService
 using Q.FilterBuilder.Core.Extensions;
 
 // Register with a database provider
-services.AddFilterBuilder(new SqlServerProvider());
+services.AddFilterBuilder(new SqlServerFormatProvider());
 ```
 
 #### 2. With Custom Rule Transformer Service
@@ -89,14 +89,14 @@ using Q.FilterBuilder.Core.RuleTransformers;
 var customRuleTransformerService = new RuleTransformerService();
 customRuleTransformerService.RegisterTransformer("custom_op", new CustomTransformer());
 
-services.AddFilterBuilder(new SqlServerProvider(), customRuleTransformerService);
+services.AddFilterBuilder(new SqlServerFormatProvider(), customRuleTransformerService);
 ```
 
 #### 3. With Configuration Actions
 
 ```csharp
 services.AddFilterBuilder(
-    new SqlServerProvider(),
+    new SqlServerFormatProvider(),
     typeConversion =>
     {
         // Configure type conversion
@@ -111,14 +111,14 @@ services.AddFilterBuilder(
 
 ## Advanced Usage
 
-### Custom Query Syntax Provider
+### Custom Query Format Provider
 
-Create your own query syntax provider by implementing `IQuerySyntaxProvider`:
+Create your own query format provider by implementing `IQueryFormatProvider`:
 
 ```csharp
 using Q.FilterBuilder.Core.Providers;
 
-public class CustomQuerySyntaxProvider : IQuerySyntaxProvider
+public class CustomQueryFormatProvider : IQueryFormatProvider
 {
     public string ParameterPrefix => "$";
     public string AndOperator => "AND";
@@ -136,7 +136,7 @@ public class CustomQuerySyntaxProvider : IQuerySyntaxProvider
 }
 
 // Register your custom provider
-services.AddFilterBuilder(new CustomDatabaseProvider());
+services.AddFilterBuilder(new CustomQueryFormatProvider());
 ```
 
 ### Custom Type Converters
@@ -163,7 +163,7 @@ public class CustomDateConverter : ITypeConverter
 
 // Register the converter
 services.AddFilterBuilder(
-    new SqlServerProvider(),
+    new SqlServerFormatProvider(),
     typeConversion =>
     {
         typeConversion.RegisterConverter("custom_date", new CustomDateConverter());
@@ -196,7 +196,7 @@ public class CustomLikeTransformer : BaseRuleTransformer
 
 // Register the transformer
 services.AddFilterBuilder(
-    new PostgreSqlProvider(),
+    new PostgreSqlFormatProvider(),
     ruleTransformers =>
     {
         ruleTransformers.RegisterTransformer("ilike", new CustomLikeTransformer());
@@ -221,8 +221,8 @@ services.AddRuleTransformers(ruleTransformers =>
     ruleTransformers.RegisterTransformer("custom", new CustomTransformer());
 });
 
-// Register query syntax provider
-services.AddSingleton<IQuerySyntaxProvider, SqlServerProvider>();
+// Register query format provider
+services.AddSingleton<IQueryFormatProvider, SqlServerFormatProvider>();
 
 // Register FilterBuilder
 services.AddSingleton<IFilterBuilder, FilterBuilder>();
@@ -287,7 +287,7 @@ If you're creating a provider package for a new database:
 
 1. **Create the provider class**:
 ```csharp
-public class MyQuerySyntaxProvider : IQuerySyntaxProvider
+public class MyQueryFormatProvider : IQueryFormatProvider
 {
     // Implement interface methods
 }
@@ -299,7 +299,7 @@ public static class MyDatabaseServiceCollectionExtensions
 {
     public static IServiceCollection AddMyDatabaseFilterBuilder(this IServiceCollection services)
     {
-        return services.AddFilterBuilder(new MyQuerySyntaxProvider());
+        return services.AddFilterBuilder(new MyQueryFormatProvider());
     }
 }
 ```
@@ -315,7 +315,7 @@ Here's a complete example of creating a PostgreSQL provider:
 
 ```csharp
 // 1. Create the provider
-public class PostgreSqlProvider : IQuerySyntaxProvider
+public class PostgreSqlFormatProvider : IQueryFormatProvider
 {
     public string ParameterPrefix => "$";
     public string AndOperator => "AND";
@@ -337,7 +337,7 @@ public static class PostgreSqlServiceCollectionExtensions
 {
     public static IServiceCollection AddPostgreSqlFilterBuilder(this IServiceCollection services)
     {
-        return services.AddFilterBuilder(new PostgreSqlProvider());
+        return services.AddFilterBuilder(new PostgreSqlFormatProvider());
     }
 
     public static IServiceCollection AddPostgreSqlFilterBuilder(
@@ -345,7 +345,7 @@ public static class PostgreSqlServiceCollectionExtensions
         Action<ITypeConversionService> configureTypeConversion)
     {
         return services.AddFilterBuilder(
-            new PostgreSqlProvider(),
+            new PostgreSqlFormatProvider(),
             configureTypeConversion);
     }
 }
@@ -360,10 +360,10 @@ services.AddPostgreSqlFilterBuilder();
 
 ```csharp
 [Test]
-public void PostgreSqlProvider_ShouldFormatFieldsCorrectly()
+public void PostgreSqlFormatProvider_ShouldFormatFieldsCorrectly()
 {
     // Arrange
-    var provider = new PostgreSqlProvider();
+    var provider = new PostgreSqlFormatProvider();
 
     // Act
     var result = provider.FormatFieldName("UserName");
@@ -373,10 +373,10 @@ public void PostgreSqlProvider_ShouldFormatFieldsCorrectly()
 }
 
 [Test]
-public void PostgreSqlProvider_ShouldFormatParametersCorrectly()
+public void PostgreSqlFormatProvider_ShouldFormatParametersCorrectly()
 {
     // Arrange
-    var provider = new PostgreSqlProvider();
+    var provider = new PostgreSqlFormatProvider();
 
     // Act
     var result = provider.FormatParameterName(0);
@@ -422,7 +422,7 @@ public void FilterBuilder_WithCustomProvider_ShouldGenerateCorrectQuery()
 {
     // Arrange
     var services = new ServiceCollection();
-    services.AddFilterBuilder(new PostgreSqlProvider());
+    services.AddFilterBuilder(new PostgreSqlFormatProvider());
     var serviceProvider = services.BuildServiceProvider();
     var filterBuilder = serviceProvider.GetRequiredService<IFilterBuilder>();
 

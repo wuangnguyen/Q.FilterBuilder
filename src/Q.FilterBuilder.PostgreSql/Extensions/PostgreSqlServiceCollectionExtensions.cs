@@ -1,8 +1,8 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
+using Q.FilterBuilder.Core.RuleTransformers;
 using Q.FilterBuilder.Core.Extensions;
 using Q.FilterBuilder.Core.TypeConversion;
-using Q.FilterBuilder.Core.RuleTransformers;
 
 namespace Q.FilterBuilder.PostgreSql.Extensions;
 
@@ -27,10 +27,10 @@ public static class PostgreSqlServiceCollectionExtensions
         }
 
         // Create PostgreSQL provider
-        var postgreSqlProvider = new PostgreSqlProvider();
+        var postgreSqlFormatProvider = new PostgreSqlFormatProvider();
 
         // Register FilterBuilder with PostgreSQL provider (uses default rule transformers)
-        services.AddFilterBuilder(postgreSqlProvider);
+        services.AddFilterBuilder(postgreSqlFormatProvider);
 
         return services;
     }
@@ -58,11 +58,11 @@ public static class PostgreSqlServiceCollectionExtensions
         }
 
         // Create PostgreSQL provider
-        var postgreSqlProvider = new PostgreSqlProvider();
+        var postgreSqlFormatProvider = new PostgreSqlFormatProvider();
 
         // Register FilterBuilder with PostgreSQL provider and custom type conversion
         services.AddFilterBuilder(
-            postgreSqlProvider,
+            postgreSqlFormatProvider,
             configureTypeConversion);
 
         return services;
@@ -91,11 +91,11 @@ public static class PostgreSqlServiceCollectionExtensions
         }
 
         // Create PostgreSQL provider
-        var postgreSqlProvider = new PostgreSqlProvider();
+        var postgreSqlFormatProvider = new PostgreSqlFormatProvider();
 
         // Register FilterBuilder with PostgreSQL provider and custom rule transformers
         services.AddFilterBuilder(
-            postgreSqlProvider,
+            postgreSqlFormatProvider,
             null, // Use default type conversion
             configureRuleTransformers);
 
@@ -132,11 +132,11 @@ public static class PostgreSqlServiceCollectionExtensions
         }
 
         // Create PostgreSQL provider
-        var postgreSqlProvider = new PostgreSqlProvider();
+        var postgreSqlFormatProvider = new PostgreSqlFormatProvider();
 
         // Register FilterBuilder with PostgreSQL provider and custom configuration
         services.AddFilterBuilder(
-            postgreSqlProvider,
+            postgreSqlFormatProvider,
             configureTypeConversion,
             configureRuleTransformers);
 

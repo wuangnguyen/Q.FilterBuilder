@@ -19,7 +19,7 @@ public static class FilterBuilderServiceCollectionExtensions
     /// <param name="services">The service collection.</param>
     /// <param name="querySyntaxProvider">The query syntax provider to use.</param>
     /// <returns>The service collection for chaining.</returns>
-    public static IServiceCollection AddFilterBuilder(this IServiceCollection services, IQuerySyntaxProvider querySyntaxProvider)
+    public static IServiceCollection AddFilterBuilder(this IServiceCollection services, IQueryFormatProvider querySyntaxProvider)
     {
         if (services == null)
         {
@@ -53,7 +53,7 @@ public static class FilterBuilderServiceCollectionExtensions
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddFilterBuilder(
         this IServiceCollection services,
-        IQuerySyntaxProvider querySyntaxProvider,
+        IQueryFormatProvider querySyntaxProvider,
         IRuleTransformerService ruleTransformerService)
     {
         if (services == null)
@@ -96,7 +96,7 @@ public static class FilterBuilderServiceCollectionExtensions
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddFilterBuilder(
         this IServiceCollection services,
-        IQuerySyntaxProvider querySyntaxProvider,
+        IQueryFormatProvider querySyntaxProvider,
         Action<ITypeConversionService>? configureTypeConversion = null,
         Action<IRuleTransformerService>? configureRuleTransformers = null)
     {

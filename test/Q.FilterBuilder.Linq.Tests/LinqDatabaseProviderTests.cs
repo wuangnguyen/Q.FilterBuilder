@@ -1,15 +1,14 @@
-using Q.FilterBuilder.Linq;
 using Xunit;
 
 namespace Q.FilterBuilder.Linq.Tests;
 
-public class LinqDatabaseProviderTests
+public class LinqFormatProviderTests
 {
-    private readonly LinqDatabaseProvider _provider;
+    private readonly LinqFormatProvider _provider;
 
-    public LinqDatabaseProviderTests()
+    public LinqFormatProviderTests()
     {
-        _provider = new LinqDatabaseProvider();
+        _provider = new LinqFormatProvider();
     }
 
     [Fact]

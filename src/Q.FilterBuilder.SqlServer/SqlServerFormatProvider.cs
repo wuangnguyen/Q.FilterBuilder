@@ -1,14 +1,14 @@
 using Q.FilterBuilder.Core.Providers;
 
-namespace Q.FilterBuilder.MySql;
+namespace Q.FilterBuilder.SqlServer;
 
 /// <summary>
-/// MySQL query syntax provider implementation.
+/// SQL Server query syntax provider implementation.
 /// </summary>
-public class MySqlProvider : IQuerySyntaxProvider
+public class SqlServerFormatProvider : IQueryFormatProvider
 {
     /// <inheritdoc />
-    public string ParameterPrefix => "?";
+    public string ParameterPrefix => "@";
 
     /// <inheritdoc />
     public string AndOperator => "AND";
@@ -19,13 +19,12 @@ public class MySqlProvider : IQuerySyntaxProvider
     /// <inheritdoc />
     public string FormatFieldName(string fieldName)
     {
-        return $"`{fieldName}`";
+        return $"[{fieldName}]";
     }
 
     /// <inheritdoc />
     public string FormatParameterName(int parameterIndex)
     {
-        // MySQL uses positional parameters
-        return ParameterPrefix;
+        return $"{ParameterPrefix}p{parameterIndex}";
     }
 }

@@ -1,15 +1,14 @@
-using Q.FilterBuilder.PostgreSql;
 using Xunit;
 
 namespace Q.FilterBuilder.PostgreSql.Tests;
 
 public class PostgreSqlProviderTests
 {
-    private readonly PostgreSqlProvider _provider;
+    private readonly PostgreSqlFormatProvider _provider;
 
     public PostgreSqlProviderTests()
     {
-        _provider = new PostgreSqlProvider();
+        _provider = new PostgreSqlFormatProvider();
     }
 
     [Fact]

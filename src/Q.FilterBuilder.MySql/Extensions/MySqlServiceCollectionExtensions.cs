@@ -1,8 +1,8 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
+using Q.FilterBuilder.Core.RuleTransformers;
 using Q.FilterBuilder.Core.Extensions;
 using Q.FilterBuilder.Core.TypeConversion;
-using Q.FilterBuilder.Core.RuleTransformers;
 
 namespace Q.FilterBuilder.MySql.Extensions;
 
@@ -27,10 +27,10 @@ public static class MySqlServiceCollectionExtensions
         }
 
         // Create MySQL provider
-        var mySqlProvider = new MySqlProvider();
+        var mySqlFormatProvider = new MySqlFormatProvider();
 
         // Register FilterBuilder with MySQL provider (uses default rule transformers)
-        services.AddFilterBuilder(mySqlProvider);
+        services.AddFilterBuilder(mySqlFormatProvider);
 
         return services;
     }
@@ -58,11 +58,11 @@ public static class MySqlServiceCollectionExtensions
         }
 
         // Create MySQL provider
-        var mySqlProvider = new MySqlProvider();
+        var mySqlFormatProvider = new MySqlFormatProvider();
 
         // Register FilterBuilder with MySQL provider and custom type conversion
         services.AddFilterBuilder(
-            mySqlProvider,
+            mySqlFormatProvider,
             configureTypeConversion);
 
         return services;
@@ -91,11 +91,11 @@ public static class MySqlServiceCollectionExtensions
         }
 
         // Create MySQL provider
-        var mySqlProvider = new MySqlProvider();
+        var mySqlFormatProvider = new MySqlFormatProvider();
 
         // Register FilterBuilder with MySQL provider and custom rule transformers
         services.AddFilterBuilder(
-            mySqlProvider,
+            mySqlFormatProvider,
             null, // Use default type conversion
             configureRuleTransformers);
 
@@ -132,11 +132,11 @@ public static class MySqlServiceCollectionExtensions
         }
 
         // Create MySQL provider
-        var mySqlProvider = new MySqlProvider();
+        var mySqlFormatProvider = new MySqlFormatProvider();
 
         // Register FilterBuilder with MySQL provider and custom configuration
         services.AddFilterBuilder(
-            mySqlProvider,
+            mySqlFormatProvider,
             configureTypeConversion,
             configureRuleTransformers);
 

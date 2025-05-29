@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using Q.FilterBuilder.Core.Models;
-using Q.FilterBuilder.JsonConverter;
 using Xunit;
 
 namespace Q.FilterBuilder.JsonConverter.Tests;

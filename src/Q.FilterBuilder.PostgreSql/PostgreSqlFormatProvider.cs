@@ -5,7 +5,7 @@ namespace Q.FilterBuilder.PostgreSql;
 /// <summary>
 /// PostgreSQL query syntax provider implementation.
 /// </summary>
-public class PostgreSqlProvider : IQuerySyntaxProvider
+public class PostgreSqlFormatProvider : IQueryFormatProvider
 {
     /// <inheritdoc />
     public string ParameterPrefix => "$";

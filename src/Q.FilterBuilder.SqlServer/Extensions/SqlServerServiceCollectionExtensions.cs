@@ -28,11 +28,11 @@ public static class SqlServerServiceCollectionExtensions
         }
 
         // Create SQL Server provider and rule transformer service
-        var sqlServerProvider = new SqlServerProvider();
+        var sqlServerFormatProvider = new SqlServerFormatProvider();
         var sqlServerRuleTransformerService = new SqlServerRuleTransformerService();
 
         // Register FilterBuilder with SQL Server provider and rule transformer service
-        services.AddFilterBuilder(sqlServerProvider, sqlServerRuleTransformerService);
+        services.AddFilterBuilder(sqlServerFormatProvider, sqlServerRuleTransformerService);
 
         return services;
     }
@@ -60,12 +60,12 @@ public static class SqlServerServiceCollectionExtensions
         }
 
         // Create SQL Server provider and rule transformer service
-        var sqlServerProvider = new SqlServerProvider();
+        var sqlServerFormatProvider = new SqlServerFormatProvider();
         var sqlServerRuleTransformerService = new SqlServerRuleTransformerService();
 
         // Register FilterBuilder with SQL Server provider, custom type conversion, and SQL Server transformers
         services.AddFilterBuilder(
-            sqlServerProvider,
+            sqlServerFormatProvider,
             configureTypeConversion,
             ruleTransformers =>
             {
@@ -99,12 +99,12 @@ public static class SqlServerServiceCollectionExtensions
         }
 
         // Create SQL Server provider and rule transformer service
-        var sqlServerProvider = new SqlServerProvider();
+        var sqlServerFormatProvider = new SqlServerFormatProvider();
         var sqlServerRuleTransformerService = new SqlServerRuleTransformerService();
 
         // Register FilterBuilder with SQL Server provider and custom rule transformers
         services.AddFilterBuilder(
-            sqlServerProvider,
+            sqlServerFormatProvider,
             null, // Use default type conversion
             ruleTransformers =>
             {
@@ -147,12 +147,12 @@ public static class SqlServerServiceCollectionExtensions
         }
 
         // Create SQL Server provider and rule transformer service
-        var sqlServerProvider = new SqlServerProvider();
+        var sqlServerFormatProvider = new SqlServerFormatProvider();
         var sqlServerRuleTransformerService = new SqlServerRuleTransformerService();
 
         // Register FilterBuilder with SQL Server provider and custom configuration
         services.AddFilterBuilder(
-            sqlServerProvider,
+            sqlServerFormatProvider,
             configureTypeConversion,
             ruleTransformers =>
             {

@@ -3,9 +3,9 @@ using Q.FilterBuilder.Core.Providers;
 namespace Q.FilterBuilder.Linq;
 
 /// <summary>
-/// LINQ query syntax provider that provides LINQ-specific formatting for use with FilterBuilder.
+/// LINQ query format provider that provides LINQ-specific formatting for use with FilterBuilder.
 /// </summary>
-public class LinqDatabaseProvider : IQuerySyntaxProvider
+public class LinqFormatProvider : IQueryFormatProvider
 {
     /// <inheritdoc />
     public string ParameterPrefix => "";

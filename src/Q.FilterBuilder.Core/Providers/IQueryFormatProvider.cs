@@ -5,7 +5,7 @@ namespace Q.FilterBuilder.Core.Providers;
 /// Each database (SqlServer, MySQL, Postgres, etc.) implements this interface to provide
 /// database-specific formatting rules for parameters, field names, and logical operators.
 /// </summary>
-public interface IQuerySyntaxProvider
+public interface IQueryFormatProvider
 {
     /// <summary>
     /// Gets the parameter prefix for this database (e.g., "@" for SQL Server, "?" for MySQL).

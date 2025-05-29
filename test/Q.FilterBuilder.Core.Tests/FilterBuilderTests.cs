@@ -8,13 +8,13 @@ namespace Q.FilterBuilder.Core.Tests;
 
 public class FilterBuilderTests
 {
-    private readonly Mock<IQuerySyntaxProvider> _mockQuerySyntaxProvider;
+    private readonly Mock<IQueryFormatProvider> _mockQuerySyntaxProvider;
     private readonly Mock<ITypeConversionService> _mockTypeConversionService;
     private readonly FilterBuilder _filterBuilder;
 
     public FilterBuilderTests()
     {
-        _mockQuerySyntaxProvider = new Mock<IQuerySyntaxProvider>();
+        _mockQuerySyntaxProvider = new Mock<IQueryFormatProvider>();
         _mockTypeConversionService = new Mock<ITypeConversionService>();
 
         // Setup query syntax provider to return the operator provider
@@ -35,7 +35,7 @@ public class FilterBuilderTests
     {
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() => new FilterBuilder(null!, _mockTypeConversionService.Object));
-        Assert.Equal("querySyntaxProvider", exception.ParamName);
+        Assert.Equal("queryFormatProvider", exception.ParamName);
     }
 
     [Fact]

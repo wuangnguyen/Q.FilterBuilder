@@ -14,19 +14,19 @@ namespace Q.FilterBuilder.Core;
 /// </summary>
 public class FilterBuilder : IFilterBuilder
 {
-    private readonly IQuerySyntaxProvider _querySyntaxProvider;
+    private readonly IQueryFormatProvider _queryFormatProvider;
     private readonly ITypeConversionService _typeConversionService;
     private readonly IRuleTransformerService _ruleTransformerService;
 
     /// <summary>
-    /// Initializes a new instance of the FilterBuilder class with a specific query syntax provider.
+    /// Initializes a new instance of the FilterBuilder class with a specific query format provider.
     /// </summary>
-    /// <param name="querySyntaxProvider">The query syntax provider (SqlServer, MySQL, Postgres, etc.).</param>
+    /// <param name="queryFormatProvider">The query format provider (SqlServer, MySQL, Postgres, etc.).</param>
     /// <param name="typeConversionService">The type conversion service. If null, a default service will be created.</param>
     /// <param name="ruleTransformerService">The rule transformer service. If null, a default service will be created.</param>
-    public FilterBuilder(IQuerySyntaxProvider querySyntaxProvider, ITypeConversionService? typeConversionService = null, IRuleTransformerService? ruleTransformerService = null)
+    public FilterBuilder(IQueryFormatProvider queryFormatProvider, ITypeConversionService? typeConversionService = null, IRuleTransformerService? ruleTransformerService = null)
     {
-        _querySyntaxProvider = querySyntaxProvider ?? throw new ArgumentNullException(nameof(querySyntaxProvider));
+        _queryFormatProvider = queryFormatProvider ?? throw new ArgumentNullException(nameof(queryFormatProvider));
         _typeConversionService = typeConversionService ?? new TypeConversionService();
         _ruleTransformerService = ruleTransformerService ?? new RuleTransformerService();
     }
@@ -97,8 +97,8 @@ public class FilterBuilder : IFilterBuilder
 
         // Get rule transformer instance
         var ruleTransformer = _ruleTransformerService.GetRuleTransformer(rule.Operator);
-        var fieldName = _querySyntaxProvider.FormatFieldName(rule.FieldName);
-        var parameterName = _querySyntaxProvider.FormatParameterName(context.ParameterIndex);
+        var fieldName = _queryFormatProvider.FormatFieldName(rule.FieldName);
+        var parameterName = _queryFormatProvider.FormatParameterName(context.ParameterIndex);
 
         // Transform the rule using the rule transformer
         var (query, parameters) = ruleTransformer.Transform(rule, fieldName, parameterName);
@@ -120,8 +120,8 @@ public class FilterBuilder : IFilterBuilder
     {
         var logicalOperator = condition.ToUpper() switch
         {
-            "AND" => _querySyntaxProvider.AndOperator,
-            "OR" => _querySyntaxProvider.OrOperator,
+            "AND" => _queryFormatProvider.AndOperator,
+            "OR" => _queryFormatProvider.OrOperator,
             _ => condition
         };
 

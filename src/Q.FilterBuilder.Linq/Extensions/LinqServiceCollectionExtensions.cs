@@ -1,8 +1,8 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
+using Q.FilterBuilder.Core.RuleTransformers;
 using Q.FilterBuilder.Core.Extensions;
 using Q.FilterBuilder.Core.TypeConversion;
-using Q.FilterBuilder.Core.RuleTransformers;
 using Q.FilterBuilder.Linq.RuleTransformers;
 
 namespace Q.FilterBuilder.Linq.Extensions;
@@ -28,11 +28,11 @@ public static class LinqServiceCollectionExtensions
         }
 
         // Create LINQ provider and rule transformer service
-        var linqProvider = new LinqDatabaseProvider();
+        var linqFormatProvider = new LinqFormatProvider();
         var linqRuleTransformerService = new LinqRuleTransformerService();
 
         // Register FilterBuilder with LINQ provider and rule transformer service
-        services.AddFilterBuilder(linqProvider, linqRuleTransformerService);
+        services.AddFilterBuilder(linqFormatProvider, linqRuleTransformerService);
 
         return services;
     }
@@ -60,12 +60,12 @@ public static class LinqServiceCollectionExtensions
         }
 
         // Create LINQ provider and rule transformer service
-        var linqProvider = new LinqDatabaseProvider();
+        var linqFormatProvider = new LinqFormatProvider();
         var linqRuleTransformerService = new LinqRuleTransformerService();
 
         // Register FilterBuilder with LINQ provider and custom type conversion
         services.AddFilterBuilder(
-            linqProvider,
+            linqFormatProvider,
             configureTypeConversion,
             ruleTransformers =>
             {
@@ -99,12 +99,12 @@ public static class LinqServiceCollectionExtensions
         }
 
         // Create LINQ provider and rule transformer service
-        var linqProvider = new LinqDatabaseProvider();
+        var linqFormatProvider = new LinqFormatProvider();
         var linqRuleTransformerService = new LinqRuleTransformerService();
 
         // Register FilterBuilder with LINQ provider and custom rule transformers
         services.AddFilterBuilder(
-            linqProvider,
+            linqFormatProvider,
             null, // Use default type conversion
             ruleTransformers =>
             {
@@ -147,12 +147,12 @@ public static class LinqServiceCollectionExtensions
         }
 
         // Create LINQ provider and rule transformer service
-        var linqProvider = new LinqDatabaseProvider();
+        var linqFormatProvider = new LinqFormatProvider();
         var linqRuleTransformerService = new LinqRuleTransformerService();
 
         // Register FilterBuilder with LINQ provider and custom configuration
         services.AddFilterBuilder(
-            linqProvider,
+            linqFormatProvider,
             configureTypeConversion,
             ruleTransformers =>
             {

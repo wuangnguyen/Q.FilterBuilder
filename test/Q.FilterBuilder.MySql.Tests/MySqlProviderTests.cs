@@ -1,15 +1,14 @@
-using Q.FilterBuilder.MySql;
 using Xunit;
 
 namespace Q.FilterBuilder.MySql.Tests;
 
 public class MySqlProviderTests
 {
-    private readonly MySqlProvider _provider;
+    private readonly MySqlFormatProvider _provider;
 
     public MySqlProviderTests()
     {
-        _provider = new MySqlProvider();
+        _provider = new MySqlFormatProvider();
     }
 
     [Fact]
