@@ -3,19 +3,14 @@
 [![.NET Standard](https://img.shields.io/badge/.NET%20Standard-2.1-blue.svg)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-A powerful, flexible, and extensible .NET library for building dynamic WHERE clauses in SQL queries and LINQ expressions. Q.FilterBuilder provides a type-safe way to construct complex query conditions based on runtime data without writing raw SQL strings.
+A powerful, flexible, and extensible .NET library for building dynamic and complex filter conditions based on runtime data.
 
 ## 🚀 Why Q.FilterBuilder is Powerful
-
-### 🎯 **Multi-Database Architecture**
-- **4 Database Providers**: SQL Server, MySQL, PostgreSQL, LINQ - same code, different outputs
-- **Provider Isolation**: Each database handles its own formatting (`[Field]` vs `` `Field` `` vs `"Field"`)
-- **Parameter Handling**: Automatic parameter formatting (`@p0` vs `?` vs `$1`)
 
 ### 🔧 **Unlimited Extensibility**
 - **Custom Rule Transformers**: Add new operators like `fulltext`, `json_contains`, `array_contains`
 - **Custom Type Converters**: Handle specialized data types (currency, phone, UUID, enums)
-- **Custom Database Providers**: Support any database with custom formatting rules
+- **Custom Database Providers**: Support multiple databases with custom formatting rules
 - **Runtime Registration**: Add extensions without recompiling
 
 ### 🌐 **Universal UI Integration**
@@ -25,7 +20,6 @@ A powerful, flexible, and extensible .NET library for building dynamic WHERE cla
 
 ### 🏗️ **Enterprise-Grade Architecture**
 - **SOLID Principles**: Clean separation of concerns, dependency injection ready
-- **Type Safety**: No raw SQL strings, compile-time validation
 - **SQL Injection Protection**: Automatic parameterization
 - **Complex Logic**: Unlimited nested groups with AND/OR combinations
 
@@ -140,7 +134,7 @@ var (query, parameters) = filterBuilder.Build(group);
 //          AND [Email] IS NOT NULL"
 ```
 
-📖 **Complete Reference**: [Core Package Guide](src/Core/README.md)
+📖 **Complete Reference**: [Core Package Guide](src/Q.FilterBuilder.Core/README.md)
 
 ## 🎯 Supported Rule Transformers
 
@@ -153,7 +147,7 @@ var (query, parameters) = filterBuilder.Build(group);
 | `contains`, `begins_with`, `ends_with` | String operations | `Name LIKE '%John%'` |
 | `is_null`, `is_not_null` | Null checks | `Email IS NOT NULL` |
 
-📖 **Complete Reference**: [Rule Transformers Guide](src/Core/README.md#rule-transformers)
+📖 **Complete Reference**: [Rule Transformers Guide](src/Q.FilterBuilder.Core/README.md#rule-transformers)
 
 ## 🧪 Testing
 
@@ -167,18 +161,18 @@ dotnet build FilterBuilder.sln
 dotnet test FilterBuilder.sln
 ```
 
-📖 **Testing Guide**: [Test Documentation](src/Core/test/)
+📖 **Testing Guide**: [Test Documentation](src/Q.FilterBuilder.Core/test/)
 
 ## 📚 Documentation
 
 For detailed implementation guidance, refer to the individual project README files:
 
-- **[Core Package](src/Core/README.md)** - Foundation components and manual setup
-- **[SQL Server Provider](src/Providers/SqlServer/README.md)** - SQL Server specific implementation
-- **[MySQL Provider](src/Providers/MySql/README.md)** - MySQL specific implementation
-- **[PostgreSQL Provider](src/Providers/PostgreSql/README.md)** - PostgreSQL specific implementation
-- **[LINQ Provider](src/Providers/Linq/README.md)** - LINQ expressions and Entity Framework
-- **[JSON Converter](src/JsonConverter/src/README.md)** - jQuery QueryBuilder integration
+- **[Core Package](../Q.FilterBuilder.Core/README.md)** - Foundation components and manual setup
+- **[SQL Server Provider](../Q.FilterBuilder.SqlServer/README.md)** - SQL Server specific implementation
+- **[MySQL Provider](../Q.FilterBuilder.MySql/README.md)** - MySQL specific implementation
+- **[PostgreSQL Provider](../Q.FilterBuilder.PostgreSql/README.md)** - PostgreSQL specific implementation
+- **[LINQ Provider](../Q.FilterBuilder.Linq/README.md)** - LINQ expressions and Entity Framework
+- **[JSON Converter](../Q.FilterBuilder.JsonConverter/README.md)** - jQuery QueryBuilder integration
 
 ## 🔌 Extensions
 
@@ -213,14 +207,14 @@ var reactJsonOptions = new JsonSerializerOptions
 var group = JsonSerializer.Deserialize<FilterGroup>(json, jqueryOptions);
 ```
 
-📖 **JSON Guide**: [JSON Converter Documentation](src/JsonConverter/src/README.md)
+📖 **JSON Guide**: [JSON Converter Documentation](src/Q.FilterBuilder.JsonConverter/README.md)
 
 ### Custom Extensions
 - **Custom Rule Transformers**: Add new operators
 - **Custom Database Providers**: Support new databases
 - **Custom Type Converters**: Handle specialized data types
 
-📖 **Extension Guides**: [Core Extensions](src/Core/README.md#extending)
+📖 **Extension Guides**: [Core Extensions](src/Q.FilterBuilder.Core/README.md#extending)
 
 ## 🤝 Contributing
 

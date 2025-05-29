@@ -9,33 +9,33 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{6143D44B-CFAB-4B44-A03B-9BA19506D2E0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.Core", "src\Core\src\Q.FilterBuilder.Core.csproj", "{A5607035-467C-4633-B2A4-2D2A1E90DB1E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.Core", "src\Q.FilterBuilder.Core\Q.FilterBuilder.Core.csproj", "{A5607035-467C-4633-B2A4-2D2A1E90DB1E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.SqlServer", "src\Providers\SqlServer\src\Q.FilterBuilder.SqlServer.csproj", "{BC7836FD-0BA8-4E53-87C4-E465C695303E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.SqlServer", "src\Q.FilterBuilder.SqlServer\Q.FilterBuilder.SqlServer.csproj", "{BC7836FD-0BA8-4E53-87C4-E465C695303E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.MySql", "src\Providers\MySql\src\Q.FilterBuilder.MySql.csproj", "{60C60E09-2D48-404F-BD9B-FB2DA98597D9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.MySql", "src\Q.FilterBuilder.MySql\Q.FilterBuilder.MySql.csproj", "{60C60E09-2D48-404F-BD9B-FB2DA98597D9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.PostgreSql", "src\Providers\PostgreSql\src\Q.FilterBuilder.PostgreSql.csproj", "{48A91BC9-556C-4383-B5BE-466A0D0F0D6C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.PostgreSql", "src\Q.FilterBuilder.PostgreSql\Q.FilterBuilder.PostgreSql.csproj", "{48A91BC9-556C-4383-B5BE-466A0D0F0D6C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.Linq", "src\Providers\Linq\src\Q.FilterBuilder.Linq.csproj", "{E6C35419-DF20-4B97-89CB-40A8DF36CD18}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.Linq", "src\Q.FilterBuilder.Linq\Q.FilterBuilder.Linq.csproj", "{E6C35419-DF20-4B97-89CB-40A8DF36CD18}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.JsonConverter", "src\JsonConverter\src\Q.FilterBuilder.JsonConverter.csproj", "{5F35E107-F9B0-483A-84A8-2C5AA0D0678C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.JsonConverter", "src\Q.FilterBuilder.JsonConverter\Q.FilterBuilder.JsonConverter.csproj", "{5F35E107-F9B0-483A-84A8-2C5AA0D0678C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{3AC042F6-04E6-4CEB-B048-5EC6B3D13126}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{70927920-5337-4409-BD32-BC55C30D9F42}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.Core.Tests", "src\Core\test\Q.FilterBuilder.Core.Tests.csproj", "{83B36E5C-6E79-426C-9675-DF2C2B53BC85}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.Core.Tests", "test\Q.FilterBuilder.Core.Tests\Q.FilterBuilder.Core.Tests.csproj", "{83B36E5C-6E79-426C-9675-DF2C2B53BC85}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.SqlServer.Tests", "src\Providers\SqlServer\test\Q.FilterBuilder.SqlServer.Tests.csproj", "{F8A2E1D4-9B3C-4E5F-8A7B-1C2D3E4F5A6B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.SqlServer.Tests", "test\Q.FilterBuilder.SqlServer.Tests\Q.FilterBuilder.SqlServer.Tests.csproj", "{F8A2E1D4-9B3C-4E5F-8A7B-1C2D3E4F5A6B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.MySql.Tests", "src\Providers\MySql\test\Q.FilterBuilder.MySql.Tests.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.MySql.Tests", "test\Q.FilterBuilder.MySql.Tests\Q.FilterBuilder.MySql.Tests.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.PostgreSql.Tests", "src\Providers\PostgreSql\test\Q.FilterBuilder.PostgreSql.Tests.csproj", "{B2C3D4E5-F6A7-8901-BCDE-F23456789012}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.PostgreSql.Tests", "test\Q.FilterBuilder.PostgreSql.Tests\Q.FilterBuilder.PostgreSql.Tests.csproj", "{B2C3D4E5-F6A7-8901-BCDE-F23456789012}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.Linq.Tests", "src\Providers\Linq\test\Q.FilterBuilder.Linq.Tests.csproj", "{C3D4E5F6-A7B8-9012-CDEF-345678901234}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.Linq.Tests", "test\Q.FilterBuilder.Linq.Tests\Q.FilterBuilder.Linq.Tests.csproj", "{C3D4E5F6-A7B8-9012-CDEF-345678901234}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.JsonConverter.Tests", "src\JsonConverter\test\Q.FilterBuilder.JsonConverter.Tests.csproj", "{D4E5F6A7-B8C9-0123-DEFA-456789012345}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q.FilterBuilder.JsonConverter.Tests", "test\Q.FilterBuilder.JsonConverter.Tests\Q.FilterBuilder.JsonConverter.Tests.csproj", "{D4E5F6A7-B8C9-0123-DEFA-456789012345}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
