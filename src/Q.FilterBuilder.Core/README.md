@@ -281,136 +281,156 @@ var ruleTransformerService = serviceProvider.GetRequiredService<IRuleTransformer
 var transformer = ruleTransformerService.GetRuleTransformer("equal");
 ```
 
-## Creating a Custom Provider Package
+## Creating Custom Components
 
-If you're creating a provider package for a new database:
+### Custom Database Providers
 
-1. **Create the provider class**:
-```csharp
-public class MyQueryFormatProvider : IQueryFormatProvider
-{
-    // Implement interface methods
-}
-```
-
-2. **Create extension methods**:
-```csharp
-public static class MyDatabaseServiceCollectionExtensions
-{
-    public static IServiceCollection AddMyDatabaseFilterBuilder(this IServiceCollection services)
-    {
-        return services.AddFilterBuilder(new MyQueryFormatProvider());
-    }
-}
-```
-
-3. **Reference the core package**:
-```xml
-<PackageReference Include="Q.FilterBuilder.Core" Version="1.0.0" />
-```
-
-## Complete Custom Provider Example
-
-Here's a complete example of creating a PostgreSQL provider:
+Create your own database provider by implementing `IQueryFormatProvider`:
 
 ```csharp
-// 1. Create the provider
-public class PostgreSqlFormatProvider : IQueryFormatProvider
+using Q.FilterBuilder.Core.Providers;
+
+public class OracleFormatProvider : IQueryFormatProvider
 {
-    public string ParameterPrefix => "$";
+    public string ParameterPrefix => ":";
     public string AndOperator => "AND";
     public string OrOperator => "OR";
 
     public string FormatFieldName(string fieldName)
     {
-        return $"\"{fieldName}\""; // PostgreSQL uses double quotes
+        return fieldName.ToUpperInvariant(); // Oracle convention
     }
 
     public string FormatParameterName(int parameterIndex)
     {
-        return $"${parameterIndex + 1}"; // PostgreSQL uses $1, $2, etc.
+        return $":p{parameterIndex}";
     }
 }
 
-// 2. Create extension methods
-public static class PostgreSqlServiceCollectionExtensions
+// Create extension method
+public static class OracleServiceCollectionExtensions
 {
-    public static IServiceCollection AddPostgreSqlFilterBuilder(this IServiceCollection services)
+    public static IServiceCollection AddOracleFilterBuilder(this IServiceCollection services)
     {
-        return services.AddFilterBuilder(new PostgreSqlFormatProvider());
-    }
-
-    public static IServiceCollection AddPostgreSqlFilterBuilder(
-        this IServiceCollection services,
-        Action<ITypeConversionService> configureTypeConversion)
-    {
-        return services.AddFilterBuilder(
-            new PostgreSqlFormatProvider(),
-            configureTypeConversion);
+        return services.AddFilterBuilder(new OracleFormatProvider());
     }
 }
 
-// 3. Usage
-services.AddPostgreSqlFilterBuilder();
+// Usage
+services.AddOracleFilterBuilder();
 ```
+
+📖 **Complete Reference**: [Database Providers Documentation](../../docs/providers.md)
+
+### Custom Type Converters
+
+```csharp
+using Q.FilterBuilder.Core.TypeConversion;
+
+public class CurrencyConverter : ITypeConverter<decimal>
+{
+    public decimal Convert(object? value, Dictionary<string, object?>? metadata = null)
+    {
+        if (value == null)
+            throw new ArgumentNullException(nameof(value));
+
+        var stringValue = value.ToString()!;
+        var cleanValue = stringValue.Replace("$", "").Replace(",", "").Trim();
+
+        return decimal.Parse(cleanValue, CultureInfo.InvariantCulture);
+    }
+}
+
+// Register the converter
+services.AddFilterBuilder(
+    new SqlServerFormatProvider(),
+    typeConversion =>
+    {
+        typeConversion.RegisterConverter("currency", new CurrencyConverter());
+    });
+```
+
+📖 **Complete Reference**: [Type Conversion Documentation](../../docs/type-conversion.md)
+
+### Custom Rule Transformers
+
+```csharp
+using Q.FilterBuilder.Core.RuleTransformers;
+
+public class FullTextTransformer : BaseRuleTransformer
+{
+    protected override object[]? BuildParameters(object? value, Dictionary<string, object?>? metadata)
+    {
+        if (value == null)
+            throw new ArgumentNullException(nameof(value));
+
+        var searchTerms = value.ToString()!.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var processedTerms = searchTerms.Select(term => $"\"{term}\"").ToArray();
+
+        return new[] { string.Join(" AND ", processedTerms) };
+    }
+
+    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    {
+        return $"CONTAINS({fieldName}, {parameterName})";
+    }
+}
+
+// Register the transformer
+services.AddFilterBuilder(
+    new SqlServerFormatProvider(),
+    ruleTransformers =>
+    {
+        ruleTransformers.RegisterTransformer("fulltext", new FullTextTransformer());
+    });
+```
+
+📖 **Complete Reference**: [Rule Transformers Documentation](../../docs/rule-transformers.md)
 
 ## Testing Your Custom Components
 
-### Testing Custom Providers
+### Basic Testing Examples
 
 ```csharp
 [Test]
-public void PostgreSqlFormatProvider_ShouldFormatFieldsCorrectly()
+public void OracleFormatProvider_ShouldFormatFieldsCorrectly()
 {
     // Arrange
-    var provider = new PostgreSqlFormatProvider();
+    var provider = new OracleFormatProvider();
 
     // Act
     var result = provider.FormatFieldName("UserName");
 
     // Assert
-    Assert.AreEqual("\"UserName\"", result);
+    Assert.AreEqual("USERNAME", result);
 }
 
 [Test]
-public void PostgreSqlFormatProvider_ShouldFormatParametersCorrectly()
+public void CurrencyConverter_ShouldConvertValidCurrency()
 {
     // Arrange
-    var provider = new PostgreSqlFormatProvider();
+    var converter = new CurrencyConverter();
 
     // Act
-    var result = provider.FormatParameterName(0);
+    var result = converter.Convert("$1,234.56", null);
 
     // Assert
-    Assert.AreEqual("$1", result);
+    Assert.AreEqual(1234.56m, result);
 }
-```
 
-### Testing Custom Converters
-
-```csharp
 [Test]
-public void CustomDateConverter_ShouldConvertValidDate()
+public void FullTextTransformer_ShouldGenerateCorrectQuery()
 {
     // Arrange
-    var converter = new CustomDateConverter();
+    var transformer = new FullTextTransformer();
+    var rule = new FilterRule("Content", "fulltext", "search terms");
 
     // Act
-    var result = converter.Convert("31/12/2023", null);
+    var (query, parameters) = transformer.Transform(rule, "[Content]", "@p0");
 
     // Assert
-    Assert.AreEqual(new DateTime(2023, 12, 31), result);
-}
-
-[Test]
-public void CustomDateConverter_ShouldThrowForInvalidDate()
-{
-    // Arrange
-    var converter = new CustomDateConverter();
-
-    // Act & Assert
-    Assert.Throws<InvalidOperationException>(() =>
-        converter.Convert("invalid-date", null));
+    Assert.AreEqual("CONTAINS([Content], @p0)", query);
+    Assert.AreEqual(new[] { "\"search\" AND \"terms\"" }, parameters);
 }
 ```
 
@@ -418,50 +438,62 @@ public void CustomDateConverter_ShouldThrowForInvalidDate()
 
 ```csharp
 [Test]
-public void FilterBuilder_WithCustomProvider_ShouldGenerateCorrectQuery()
+public void FilterBuilder_WithCustomComponents_ShouldWork()
 {
     // Arrange
     var services = new ServiceCollection();
-    services.AddFilterBuilder(new PostgreSqlFormatProvider());
+    services.AddFilterBuilder(
+        new OracleFormatProvider(),
+        typeConversion =>
+        {
+            typeConversion.RegisterConverter("currency", new CurrencyConverter());
+        },
+        ruleTransformers =>
+        {
+            ruleTransformers.RegisterTransformer("fulltext", new FullTextTransformer());
+        });
+
     var serviceProvider = services.BuildServiceProvider();
     var filterBuilder = serviceProvider.GetRequiredService<IFilterBuilder>();
 
     var group = new FilterGroup("AND");
-    group.Rules.Add(new FilterRule("Name", "equal", "John"));
+    group.Rules.Add(new FilterRule("PRICE", "greater", "$100.00", "currency"));
 
     // Act
     var (query, parameters) = filterBuilder.Build(group);
 
     // Assert
-    Assert.AreEqual("\"Name\" = $1", query);
-    Assert.AreEqual(new[] { "John" }, parameters);
+    Assert.AreEqual("PRICE > :p0", query);
+    Assert.AreEqual(new object[] { 100.00m }, parameters);
 }
 ```
 
 ## Best Practices
 
-### Provider Development
+### 1. Follow Established Patterns
+- Use consistent naming conventions across your components
+- Inherit from base classes (`BaseRuleTransformer`) when possible
+- Follow the same error handling patterns as built-in components
 
-1. **Follow Naming Conventions**: Use consistent naming for your provider classes
-2. **Handle Edge Cases**: Consider special characters in field names
-3. **Document Parameter Format**: Clearly document how parameters are formatted
-4. **Test Thoroughly**: Test with various data types and edge cases
+### 2. Handle Edge Cases
+- Always validate input parameters
+- Consider null values and empty collections
+- Test with special characters in field names
 
-### Type Converter Development
+### 3. Provide Clear Documentation
+- Document your custom operators and their expected input formats
+- Include usage examples in your documentation
+- Specify any limitations or requirements
 
-1. **Handle Null Values**: Always check for null input values
-2. **Provide Clear Error Messages**: Throw descriptive exceptions for invalid conversions
-3. **Use Metadata**: Leverage metadata for configuration options
-4. **Be Consistent**: Follow consistent patterns across converters
-
-### Rule Transformer Development
-
-1. **Validate Input**: Check for required values and throw appropriate exceptions
-2. **Use Base Classes**: Inherit from `BaseRuleTransformer` when possible
-3. **Handle Collections**: Consider how your transformer handles array/collection values
-4. **Generate Valid SQL**: Ensure your output is valid for your target database
+### 4. Test Thoroughly
+- Write unit tests for each custom component
+- Include integration tests with FilterBuilder
+- Test with various data types and edge cases
 
 ## See Also
 
-- [SQL Server Provider Documentation](../Q.FilterBuilder.SqlServer/README.md)
-- [Main Project Documentation](../../README.md)
+- **[Main Project Documentation](../../README.md)** - Overview and getting started
+- **[Database Providers Documentation](../../docs/providers.md)** - Complete provider reference
+- **[Type Conversion Documentation](../../docs/type-conversion.md)** - Type conversion system
+- **[Rule Transformers Documentation](../../docs/rule-transformers.md)** - Rule transformer architecture
+- **[SQL Server Provider](../Q.FilterBuilder.SqlServer/README.md)** - Example provider implementation
