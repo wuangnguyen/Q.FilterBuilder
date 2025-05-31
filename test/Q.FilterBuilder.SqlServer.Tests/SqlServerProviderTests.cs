@@ -67,29 +67,173 @@ public class SqlServerProviderTests
         Assert.Equal("[User Name]", result);
     }
 
+
+
     [Fact]
-    public void FormatParameterName_ShouldReturnCorrectFormat()
+    public void FormatFieldName_WithEmptyString_ShouldWrapInSquareBrackets()
     {
         // Arrange
-        var parameterIndex = 0;
+        var fieldName = "";
 
         // Act
-        var result = _provider.FormatParameterName(parameterIndex);
+        var result = _provider.FormatFieldName(fieldName);
 
         // Assert
-        Assert.Equal("@p0", result);
+        Assert.Equal("[]", result);
     }
 
     [Fact]
-    public void FormatParameterName_WithDifferentIndex_ShouldReturnCorrectFormat()
+    public void FormatFieldName_WithNullString_ShouldWrapInSquareBrackets()
     {
         // Arrange
-        var parameterIndex = 5;
+        string fieldName = null!;
 
         // Act
-        var result = _provider.FormatParameterName(parameterIndex);
+        var result = _provider.FormatFieldName(fieldName);
 
         // Assert
-        Assert.Equal("@p5", result);
+        Assert.Equal("[]", result);
+    }
+
+    [Fact]
+    public void FormatFieldName_WithWhitespaceString_ShouldWrapInSquareBrackets()
+    {
+        // Arrange
+        var fieldName = "   ";
+
+        // Act
+        var result = _provider.FormatFieldName(fieldName);
+
+        // Assert
+        Assert.Equal("[   ]", result);
+    }
+
+    [Fact]
+    public void FormatFieldName_WithUnicodeCharacters_ShouldWrapInSquareBrackets()
+    {
+        // Arrange
+        var fieldName = "用户名";
+
+        // Act
+        var result = _provider.FormatFieldName(fieldName);
+
+        // Assert
+        Assert.Equal("[用户名]", result);
+    }
+
+    [Fact]
+    public void FormatFieldName_WithSpecialSqlCharacters_ShouldWrapInSquareBrackets()
+    {
+        // Arrange
+        var fieldName = "User[Name]";
+
+        // Act
+        var result = _provider.FormatFieldName(fieldName);
+
+        // Assert
+        Assert.Equal("[User[Name]]", result);
+    }
+
+
+
+
+
+    [Theory]
+    [InlineData(0, "@p0")]
+    [InlineData(1, "@p1")]
+    [InlineData(10, "@p10")]
+    [InlineData(100, "@p100")]
+    [InlineData(1000, "@p1000")]
+    public void FormatParameterName_WithVariousIndices_ShouldReturnCorrectFormat(int index, string expected)
+    {
+        // Act
+        var result = _provider.FormatParameterName(index);
+
+        // Assert
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [InlineData("Name", "[Name]")]
+    [InlineData("User_Name", "[User_Name]")]
+    [InlineData("User-Name", "[User-Name]")]
+    [InlineData("User.Name", "[User.Name]")]
+    [InlineData("User@Name", "[User@Name]")]
+    [InlineData("User#Name", "[User#Name]")]
+    [InlineData("User$Name", "[User$Name]")]
+    [InlineData("User%Name", "[User%Name]")]
+    [InlineData("User^Name", "[User^Name]")]
+    [InlineData("User&Name", "[User&Name]")]
+    [InlineData("User*Name", "[User*Name]")]
+    [InlineData("User(Name)", "[User(Name)]")]
+    [InlineData("User+Name", "[User+Name]")]
+    [InlineData("User=Name", "[User=Name]")]
+    [InlineData("User{Name}", "[User{Name}]")]
+    [InlineData("User|Name", "[User|Name]")]
+    [InlineData("User\\Name", "[User\\Name]")]
+    [InlineData("User:Name", "[User:Name]")]
+    [InlineData("User;Name", "[User;Name]")]
+    [InlineData("User\"Name", "[User\"Name]")]
+    [InlineData("User'Name", "[User'Name]")]
+    [InlineData("User<Name>", "[User<Name>]")]
+    [InlineData("User,Name", "[User,Name]")]
+    [InlineData("User?Name", "[User?Name]")]
+    [InlineData("User/Name", "[User/Name]")]
+    [InlineData("User~Name", "[User~Name]")]
+    [InlineData("User`Name", "[User`Name]")]
+    public void FormatFieldName_WithVariousSpecialCharacters_ShouldWrapInSquareBrackets(string fieldName, string expected)
+    {
+        // Act
+        var result = _provider.FormatFieldName(fieldName);
+
+        // Assert
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void Properties_ShouldBeConsistent()
+    {
+        // Act & Assert - Test that properties return consistent values
+        Assert.Equal("@", _provider.ParameterPrefix);
+        Assert.Equal("AND", _provider.AndOperator);
+        Assert.Equal("OR", _provider.OrOperator);
+
+        // Test consistency across multiple calls
+        Assert.Equal(_provider.ParameterPrefix, _provider.ParameterPrefix);
+        Assert.Equal(_provider.AndOperator, _provider.AndOperator);
+        Assert.Equal(_provider.OrOperator, _provider.OrOperator);
+    }
+
+    [Fact]
+    public void Provider_ShouldImplementIQueryFormatProvider()
+    {
+        // Assert
+        Assert.IsAssignableFrom<Core.Providers.IQueryFormatProvider>(_provider);
+    }
+
+    [Fact]
+    public void FormatFieldName_WithTabsAndNewlines_ShouldWrapInSquareBrackets()
+    {
+        // Arrange
+        var fieldName = "User\tName\nField";
+
+        // Act
+        var result = _provider.FormatFieldName(fieldName);
+
+        // Assert
+        Assert.Equal("[User\tName\nField]", result);
+    }
+
+    [Fact]
+    public void FormatFieldName_WithNumericString_ShouldWrapInSquareBrackets()
+    {
+        // Arrange
+        var fieldName = "123456";
+
+        // Act
+        var result = _provider.FormatFieldName(fieldName);
+
+        // Assert
+        Assert.Equal("[123456]", result);
     }
 }

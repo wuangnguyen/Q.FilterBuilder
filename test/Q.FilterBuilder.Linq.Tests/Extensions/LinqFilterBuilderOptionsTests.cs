@@ -1,32 +1,32 @@
 using System;
-using Q.FilterBuilder.SqlServer.Extensions;
+using Q.FilterBuilder.Linq.Extensions;
 using Xunit;
 
-namespace Q.FilterBuilder.SqlServer.Tests.Extensions;
+namespace Q.FilterBuilder.Linq.Tests.Extensions;
 
-public class SqlServerFilterBuilderOptionsTests
+public class LinqFilterBuilderOptionsTests
 {
     [Fact]
-    public void ConfigureTypeConversion_WithValidAction_ShouldReturnSameInstance()
+    public void ConfigureTypeConversions_WithValidAction_ShouldReturnSameInstance()
     {
         // Arrange
-        var options = new SqlServerFilterBuilderOptions();
+        var options = new LinqFilterBuilderOptions();
 
         // Act
-        var result = options.ConfigureTypeConversion(tc => { });
+        var result = options.ConfigureTypeConversions(tc => { });
 
         // Assert
         Assert.Same(options, result);
     }
 
     [Fact]
-    public void ConfigureTypeConversion_WithNullAction_ShouldThrowArgumentNullException()
+    public void ConfigureTypeConversions_WithNullAction_ShouldThrowArgumentNullException()
     {
         // Arrange
-        var options = new SqlServerFilterBuilderOptions();
+        var options = new LinqFilterBuilderOptions();
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => options.ConfigureTypeConversion(null!));
+        var exception = Assert.Throws<ArgumentNullException>(() => options.ConfigureTypeConversions(null!));
         Assert.Equal("configure", exception.ParamName);
     }
 
@@ -34,7 +34,7 @@ public class SqlServerFilterBuilderOptionsTests
     public void ConfigureRuleTransformers_WithValidAction_ShouldReturnSameInstance()
     {
         // Arrange
-        var options = new SqlServerFilterBuilderOptions();
+        var options = new LinqFilterBuilderOptions();
 
         // Act
         var result = options.ConfigureRuleTransformers(rt => { });
@@ -47,7 +47,7 @@ public class SqlServerFilterBuilderOptionsTests
     public void ConfigureRuleTransformers_WithNullAction_ShouldThrowArgumentNullException()
     {
         // Arrange
-        var options = new SqlServerFilterBuilderOptions();
+        var options = new LinqFilterBuilderOptions();
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() => options.ConfigureRuleTransformers(null!));
@@ -58,11 +58,11 @@ public class SqlServerFilterBuilderOptionsTests
     public void FluentConfiguration_ShouldAllowChaining()
     {
         // Arrange
-        var options = new SqlServerFilterBuilderOptions();
+        var options = new LinqFilterBuilderOptions();
 
         // Act
         var result = options
-            .ConfigureTypeConversion(tc => { })
+            .ConfigureTypeConversions(tc => { })
             .ConfigureRuleTransformers(rt => { });
 
         // Assert
@@ -73,21 +73,21 @@ public class SqlServerFilterBuilderOptionsTests
     public void DefaultOptions_ShouldNotThrow()
     {
         // Arrange & Act
-        var options = new SqlServerFilterBuilderOptions();
+        var options = new LinqFilterBuilderOptions();
 
         // Assert
         Assert.NotNull(options);
     }
 
     [Fact]
-    public void ConfigureTypeConversion_CalledMultipleTimes_ShouldNotThrow()
+    public void ConfigureTypeConversions_CalledMultipleTimes_ShouldNotThrow()
     {
         // Arrange
-        var options = new SqlServerFilterBuilderOptions();
+        var options = new LinqFilterBuilderOptions();
 
         // Act & Assert
-        options.ConfigureTypeConversion(tc => { });
-        options.ConfigureTypeConversion(tc => { });
+        options.ConfigureTypeConversions(tc => { });
+        options.ConfigureTypeConversions(tc => { });
 
         Assert.NotNull(options);
     }
@@ -96,7 +96,7 @@ public class SqlServerFilterBuilderOptionsTests
     public void ConfigureRuleTransformers_CalledMultipleTimes_ShouldNotThrow()
     {
         // Arrange
-        var options = new SqlServerFilterBuilderOptions();
+        var options = new LinqFilterBuilderOptions();
 
         // Act & Assert
         options.ConfigureRuleTransformers(rt => { });
@@ -109,13 +109,13 @@ public class SqlServerFilterBuilderOptionsTests
     public void Options_ShouldSupportMethodChaining()
     {
         // Arrange
-        var options = new SqlServerFilterBuilderOptions();
+        var options = new LinqFilterBuilderOptions();
 
         // Act
         var result = options
-            .ConfigureTypeConversion(tc => { })
+            .ConfigureTypeConversions(tc => { })
             .ConfigureRuleTransformers(rt => { })
-            .ConfigureTypeConversion(tc => { });
+            .ConfigureTypeConversions(tc => { });
 
         // Assert
         Assert.Same(options, result);
@@ -125,8 +125,8 @@ public class SqlServerFilterBuilderOptionsTests
     public void Options_ShouldSupportComplexFluentChaining()
     {
         // Arrange & Act
-        var options = new SqlServerFilterBuilderOptions()
-            .ConfigureTypeConversion(tc =>
+        var options = new LinqFilterBuilderOptions()
+            .ConfigureTypeConversions(tc =>
             {
                 // Complex type conversion configuration
             })
@@ -134,7 +134,7 @@ public class SqlServerFilterBuilderOptionsTests
             {
                 // Complex rule transformer configuration
             })
-            .ConfigureTypeConversion(tc =>
+            .ConfigureTypeConversions(tc =>
             {
                 // Override previous configuration
             });
@@ -142,5 +142,4 @@ public class SqlServerFilterBuilderOptionsTests
         // Assert
         Assert.NotNull(options);
     }
-
 }

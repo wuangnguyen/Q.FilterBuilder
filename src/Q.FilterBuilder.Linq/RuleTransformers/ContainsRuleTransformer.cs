@@ -39,7 +39,7 @@ public class ContainsRuleTransformer : BaseRuleTransformer
         }
 
         // Handle single value - wrap in array
-        return new[] { value };
+        return [value];
     }
 
     /// <inheritdoc />

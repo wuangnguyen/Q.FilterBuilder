@@ -56,7 +56,7 @@ public abstract class BaseRuleTransformer : IRuleTransformer
             return null;
         }
 
-        return new[] { value };
+        return [value];
     }
 
     /// <summary>

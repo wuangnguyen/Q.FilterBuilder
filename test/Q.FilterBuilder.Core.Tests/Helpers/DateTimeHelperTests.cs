@@ -292,4 +292,88 @@ public class DateTimeHelperTests
         Assert.Equal(14, parsedDate.Hour);
         Assert.Equal(30, parsedDate.Minute);
     }
+
+    [Fact]
+    public void ParseDateTimeOrNull_WithCustomFormats_ShouldUseCustomFormats()
+    {
+        // Arrange
+        var input = "25-Dec-2023";
+        var customFormat = "dd-MMM-yyyy";
+
+        // Act
+        var result = DateTimeHelper.ParseDateTimeOrNull(input, customFormat);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(2023, result!.Value.Year);
+        Assert.Equal(12, result.Value.Month);
+        Assert.Equal(25, result.Value.Day);
+    }
+
+    [Fact]
+    public void ParseDateTimeOrDefault_WithCustomFormats_ShouldUseCustomFormats()
+    {
+        // Arrange
+        var input = "25-Dec-2023";
+        var customFormat = "dd-MMM-yyyy";
+        var defaultValue = new DateTime(2020, 1, 1);
+
+        // Act
+        var result = DateTimeHelper.ParseDateTimeOrDefault(input, defaultValue, customFormat);
+
+        // Assert
+        Assert.Equal(2023, result.Year);
+        Assert.Equal(12, result.Month);
+        Assert.Equal(25, result.Day);
+    }
+
+    [Fact]
+    public void TryParseDateTime_WithNullCustomFormats_ShouldUseDefaultFormats()
+    {
+        // Arrange
+        var input = "2023-12-25";
+
+        // Act
+        var result = DateTimeHelper.TryParseDateTime(input, out var parsedDate, null);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(2023, parsedDate.Year);
+        Assert.Equal(12, parsedDate.Month);
+        Assert.Equal(25, parsedDate.Day);
+    }
+
+    [Fact]
+    public void TryParseDateTime_WithEmptyCustomFormats_ShouldUseDefaultFormats()
+    {
+        // Arrange
+        var input = "2023-12-25";
+
+        // Act
+        var result = DateTimeHelper.TryParseDateTime(input, out var parsedDate, []);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(2023, parsedDate.Year);
+        Assert.Equal(12, parsedDate.Month);
+        Assert.Equal(25, parsedDate.Day);
+    }
+
+    [Fact]
+    public void TryParseDateTime_WithZuluTimeFormat_ShouldHandleTimeZone()
+    {
+        // Arrange
+        var input = "20231225T143000Z";
+
+        // Act
+        var result = DateTimeHelper.TryParseDateTime(input, out var parsedDate, []);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(2023, parsedDate.Year);
+        Assert.Equal(12, parsedDate.Month);
+        Assert.Equal(25, parsedDate.Day);
+        Assert.Equal(14, parsedDate.Hour);
+        Assert.Equal(30, parsedDate.Minute);
+    }
 }

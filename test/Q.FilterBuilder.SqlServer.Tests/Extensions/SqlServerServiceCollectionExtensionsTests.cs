@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Q.FilterBuilder.Core;
 using Q.FilterBuilder.Core.Models;
 using Q.FilterBuilder.Core.TypeConversion;
 using Q.FilterBuilder.Core.RuleTransformers;
+using Q.FilterBuilder.Core.Providers;
 using Q.FilterBuilder.SqlServer.Extensions;
 using Xunit;
 
@@ -312,6 +314,134 @@ public class SqlServerServiceCollectionExtensionsTests
         Assert.Contains("BETWEEN", query);      // SQL Server between operator
         Assert.Contains("[Name]", query);       // SQL Server field formatting
         Assert.Contains("@p", query);           // SQL Server parameter formatting
+    }
+
+    [Fact]
+    public void AddSqlServerFilterBuilder_ShouldReturnServiceCollection()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        // Act
+        var result = services.AddSqlServerFilterBuilder();
+
+        // Assert
+        Assert.Same(services, result);
+    }
+
+    [Fact]
+    public void AddSqlServerFilterBuilder_ShouldRegisterSqlServerFormatProvider()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        // Act
+        services.AddSqlServerFilterBuilder();
+        var serviceProvider = services.BuildServiceProvider();
+
+        // Assert
+        var formatProvider = serviceProvider.GetService<IQueryFormatProvider>();
+        Assert.NotNull(formatProvider);
+        Assert.IsType<SqlServerFormatProvider>(formatProvider);
+    }
+
+    [Fact]
+    public void AddSqlServerFilterBuilder_WithExceptionInTypeConversionConfiguration_ShouldPropagateException()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        // Act
+        services.AddSqlServerFilterBuilder(options => options
+            .ConfigureTypeConversion(tc =>
+            {
+                throw new InvalidOperationException("Test exception in type conversion");
+            }));
+        var serviceProvider = services.BuildServiceProvider();
+
+        // Assert
+        Assert.Throws<InvalidOperationException>(() =>
+            serviceProvider.GetRequiredService<IFilterBuilder>());
+    }
+
+    [Fact]
+    public void AddSqlServerFilterBuilder_WithExceptionInRuleTransformerConfiguration_ShouldPropagateException()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        // Act
+        services.AddSqlServerFilterBuilder(options => options
+            .ConfigureRuleTransformers(rt =>
+            {
+                throw new InvalidOperationException("Test exception in rule transformer");
+            }));
+        var serviceProvider = services.BuildServiceProvider();
+
+        // Assert
+        Assert.Throws<InvalidOperationException>(() =>
+            serviceProvider.GetRequiredService<IFilterBuilder>());
+    }
+
+    [Fact]
+    public void AddSqlServerFilterBuilder_WithMultipleRegistrations_ShouldAllowMultiple()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        // Act
+        services.AddSqlServerFilterBuilder();
+        services.AddSqlServerFilterBuilder(); // Second registration
+
+        // Assert
+        var serviceProvider = services.BuildServiceProvider();
+        var filterBuilders = serviceProvider.GetServices<IFilterBuilder>().ToList();
+        Assert.Equal(2, filterBuilders.Count); // Should have multiple registrations since AddSingleton allows duplicates
+    }
+
+    [Fact]
+    public void AddSqlServerFilterBuilder_WithNullOrEmptyConfiguration_ShouldWork()
+    {
+        // Arrange
+        var services1 = new ServiceCollection();
+        var services2 = new ServiceCollection();
+
+        // Act
+        services1.AddSqlServerFilterBuilder(null);
+        services2.AddSqlServerFilterBuilder(options => { });
+
+        var serviceProvider1 = services1.BuildServiceProvider();
+        var serviceProvider2 = services2.BuildServiceProvider();
+
+        // Assert
+        var filterBuilder1 = serviceProvider1.GetService<IFilterBuilder>();
+        var filterBuilder2 = serviceProvider2.GetService<IFilterBuilder>();
+        Assert.NotNull(filterBuilder1);
+        Assert.NotNull(filterBuilder2);
+    }
+
+    [Fact]
+    public void AddSqlServerFilterBuilder_ConfigurationShouldBeCalledOnce()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        var configurationCallCount = 0;
+
+        // Act
+        services.AddSqlServerFilterBuilder(options =>
+        {
+            configurationCallCount++;
+            options.ConfigureTypeConversion(tc => { });
+        });
+        var serviceProvider = services.BuildServiceProvider();
+
+        // Get the service multiple times
+        var filterBuilder1 = serviceProvider.GetRequiredService<IFilterBuilder>();
+        var filterBuilder2 = serviceProvider.GetRequiredService<IFilterBuilder>();
+
+        // Assert
+        Assert.Equal(1, configurationCallCount);
+        Assert.Same(filterBuilder1, filterBuilder2);
     }
 
     // Test helper classes

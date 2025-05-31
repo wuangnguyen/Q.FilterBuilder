@@ -40,7 +40,7 @@ public class BasicRuleTransformer : BaseRuleTransformer
             throw new ArgumentException($"Basic operator '{_operator}' cannot compare with collections. Use collection-specific operators instead.", nameof(value));
         }
 
-        return new[] { value };
+        return [value];
     }
 
     /// <inheritdoc />

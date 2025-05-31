@@ -325,4 +325,247 @@ public class DateDiffRuleTransformerTests
         Assert.Single(parameters);
         Assert.Equal(5, parameters[0]);
     }
+
+    [Fact]
+    public void Transform_WithNullIntervalTypeInMetadata_ShouldUseDefaultDayInterval()
+    {
+        // Arrange
+        var rule = new FilterRule("CreatedDate", "date_diff", 12)
+        {
+            Metadata = new Dictionary<string, object?> { { "intervalType", null } }
+        };
+
+        // Act
+        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", "@param");
+
+        // Assert
+        Assert.Equal("DATEDIFF(day, CreatedDate, GETDATE()) = @param", query);
+        Assert.NotNull(parameters);
+        Assert.Single(parameters);
+        Assert.Equal(12, parameters[0]);
+    }
+
+    [Fact]
+    public void Transform_WithEmptyStringIntervalType_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var rule = new FilterRule("CreatedDate", "date_diff", 30)
+        {
+            Metadata = new Dictionary<string, object?> { { "intervalType", "" } }
+        };
+
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, "CreatedDate", "@param"));
+        Assert.Contains("Invalid interval type ''", exception.Message);
+    }
+
+    [Fact]
+    public void Transform_WithWhitespaceIntervalType_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var rule = new FilterRule("CreatedDate", "date_diff", 30)
+        {
+            Metadata = new Dictionary<string, object?> { { "intervalType", "   " } }
+        };
+
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, "CreatedDate", "@param"));
+        Assert.Contains("Invalid interval type '   '", exception.Message);
+    }
+
+    [Fact]
+    public void Transform_WithMixedCaseInterval_ShouldWork()
+    {
+        // Arrange
+        var rule = new FilterRule("CreatedDate", "date_diff", 7)
+        {
+            Metadata = new Dictionary<string, object?> { { "intervalType", "MoNtH" } }
+        };
+
+        // Act
+        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", "@param");
+
+        // Assert
+        Assert.Equal("DATEDIFF(month, CreatedDate, GETDATE()) = @param", query);
+        Assert.NotNull(parameters);
+        Assert.Single(parameters);
+        Assert.Equal(7, parameters[0]);
+    }
+
+    [Fact]
+    public void Transform_WithNonStringIntervalType_ShouldConvertToString()
+    {
+        // Arrange
+        var rule = new FilterRule("CreatedDate", "date_diff", 30)
+        {
+            Metadata = new Dictionary<string, object?> { { "intervalType", 123 } }
+        };
+
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, "CreatedDate", "@param"));
+        Assert.Contains("Invalid interval type '123'", exception.Message);
+    }
+
+    [Fact]
+    public void Transform_WithDayOfYearInterval_ShouldUseDayOfYearInterval()
+    {
+        // Arrange
+        var rule = new FilterRule("CreatedDate", "date_diff", 100)
+        {
+            Metadata = new Dictionary<string, object?> { { "intervalType", "dayofyear" } }
+        };
+
+        // Act
+        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", "@param");
+
+        // Assert
+        Assert.Equal("DATEDIFF(dayofyear, CreatedDate, GETDATE()) = @param", query);
+        Assert.NotNull(parameters);
+        Assert.Single(parameters);
+        Assert.Equal(100, parameters[0]);
+    }
+
+    [Fact]
+    public void Transform_WithMillisecondInterval_ShouldUseMillisecondInterval()
+    {
+        // Arrange
+        var rule = new FilterRule("Timestamp", "date_diff", 5000)
+        {
+            Metadata = new Dictionary<string, object?> { { "intervalType", "millisecond" } }
+        };
+
+        // Act
+        var (query, parameters) = _transformer.Transform(rule, "Timestamp", "@param");
+
+        // Assert
+        Assert.Equal("DATEDIFF(millisecond, Timestamp, GETDATE()) = @param", query);
+        Assert.NotNull(parameters);
+        Assert.Single(parameters);
+        Assert.Equal(5000, parameters[0]);
+    }
+
+    [Fact]
+    public void Transform_WithMicrosecondInterval_ShouldUseMicrosecondInterval()
+    {
+        // Arrange
+        var rule = new FilterRule("Timestamp", "date_diff", 1000000)
+        {
+            Metadata = new Dictionary<string, object?> { { "intervalType", "microsecond" } }
+        };
+
+        // Act
+        var (query, parameters) = _transformer.Transform(rule, "Timestamp", "@param");
+
+        // Assert
+        Assert.Equal("DATEDIFF(microsecond, Timestamp, GETDATE()) = @param", query);
+        Assert.NotNull(parameters);
+        Assert.Single(parameters);
+        Assert.Equal(1000000, parameters[0]);
+    }
+
+    [Fact]
+    public void Transform_WithNanosecondInterval_ShouldUseNanosecondInterval()
+    {
+        // Arrange
+        var rule = new FilterRule("Timestamp", "date_diff", 1000000000)
+        {
+            Metadata = new Dictionary<string, object?> { { "intervalType", "nanosecond" } }
+        };
+
+        // Act
+        var (query, parameters) = _transformer.Transform(rule, "Timestamp", "@param");
+
+        // Assert
+        Assert.Equal("DATEDIFF(nanosecond, Timestamp, GETDATE()) = @param", query);
+        Assert.NotNull(parameters);
+        Assert.Single(parameters);
+        Assert.Equal(1000000000, parameters[0]);
+    }
+
+    [Theory]
+    [InlineData("year")]
+    [InlineData("YEAR")]
+    [InlineData("Year")]
+    [InlineData("YeAr")]
+    public void Transform_WithCaseVariationsOfYear_ShouldWork(string intervalType)
+    {
+        // Arrange
+        var rule = new FilterRule("CreatedDate", "date_diff", 2)
+        {
+            Metadata = new Dictionary<string, object?> { { "intervalType", intervalType } }
+        };
+
+        // Act
+        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", "@param");
+
+        // Assert
+        Assert.Equal("DATEDIFF(year, CreatedDate, GETDATE()) = @param", query);
+        Assert.NotNull(parameters);
+        Assert.Single(parameters);
+        Assert.Equal(2, parameters[0]);
+    }
+
+    [Theory]
+    [InlineData("invalid")]
+    [InlineData("days")]
+    [InlineData("years")]
+    [InlineData("months")]
+    [InlineData("hours")]
+    [InlineData("minutes")]
+    [InlineData("seconds")]
+    [InlineData("weeks")]
+    [InlineData("quarters")]
+    [InlineData("milliseconds")]
+    [InlineData("microseconds")]
+    [InlineData("nanoseconds")]
+    [InlineData("dayofyears")]
+    [InlineData("unknown")]
+    [InlineData("test")]
+    [InlineData("123")]
+    [InlineData("!@#")]
+    public void Transform_WithInvalidIntervalTypes_ShouldThrowArgumentException(string invalidInterval)
+    {
+        // Arrange
+        var rule = new FilterRule("CreatedDate", "date_diff", 30)
+        {
+            Metadata = new Dictionary<string, object?> { { "intervalType", invalidInterval } }
+        };
+
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, "CreatedDate", "@param"));
+        Assert.Contains($"Invalid interval type '{invalidInterval}'", exception.Message);
+        Assert.Contains("Valid types are:", exception.Message);
+    }
+
+    [Fact]
+    public void Transform_WithStringValue_ShouldAcceptStringValue()
+    {
+        // Arrange
+        var rule = new FilterRule("CreatedDate", "date_diff", "30");
+
+        // Act
+        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", "@param");
+
+        // Assert
+        Assert.Equal("DATEDIFF(day, CreatedDate, GETDATE()) = @param", query);
+        Assert.NotNull(parameters);
+        Assert.Single(parameters);
+        Assert.Equal("30", parameters[0]);
+    }
+
+    [Fact]
+    public void Transform_WithDecimalValue_ShouldAcceptDecimalValue()
+    {
+        // Arrange
+        var rule = new FilterRule("CreatedDate", "date_diff", 30.5);
+
+        // Act
+        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", "@param");
+
+        // Assert
+        Assert.Equal("DATEDIFF(day, CreatedDate, GETDATE()) = @param", query);
+        Assert.NotNull(parameters);
+        Assert.Single(parameters);
+        Assert.Equal(30.5, parameters[0]);
+    }
 }

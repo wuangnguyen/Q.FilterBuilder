@@ -36,11 +36,11 @@ public class InRuleTransformer : BaseRuleTransformer
             }
 
             // Return the collection as a single parameter for LINQ
-            return new object[] { values };
+            return [values];
         }
 
         // Handle single value - wrap in array
-        return new object[] { new[] { value } };
+        return [new[] { value }];
     }
 
     /// <inheritdoc />

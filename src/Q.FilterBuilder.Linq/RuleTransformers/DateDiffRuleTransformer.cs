@@ -19,7 +19,7 @@ public class DateDiffRuleTransformer : BaseRuleTransformer
             throw new ArgumentNullException(nameof(value), "DATE_DIFF operator requires a non-null value");
         }
 
-        return new[] { value };
+        return [value];
     }
 
     /// <inheritdoc />

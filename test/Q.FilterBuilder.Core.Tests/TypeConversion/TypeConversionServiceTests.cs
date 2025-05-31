@@ -364,4 +364,140 @@ public class TypeConversionServiceTests
         Assert.True(_service.IsCollection(intList));
         Assert.True(_service.IsCollection(stringList));
     }
+
+    [Fact]
+    public void RegisterConverter_WithNullTypeString_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var converter = new TestCustomConverter();
+
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() =>
+            _service.RegisterConverter(null!, converter));
+        Assert.Equal("typeString", exception.ParamName);
+    }
+
+    [Fact]
+    public void RegisterConverter_WithEmptyTypeString_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var converter = new TestCustomConverter();
+
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() =>
+            _service.RegisterConverter("", converter));
+        Assert.Equal("typeString", exception.ParamName);
+    }
+
+    [Fact]
+    public void RegisterConverter_WithWhitespaceTypeString_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var converter = new TestCustomConverter();
+
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() =>
+            _service.RegisterConverter("   ", converter));
+        Assert.Equal("typeString", exception.ParamName);
+    }
+
+    [Fact]
+    public void RegisterConverter_WithNullConverter_ShouldThrowArgumentNullException()
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentNullException>(() =>
+            _service.RegisterConverter<string>("test", null!));
+        Assert.Equal("converter", exception.ParamName);
+    }
+
+    [Fact]
+    public void ConvertValue_WithEmptyArray_ShouldReturnEmptyArray()
+    {
+        // Arrange
+        var input = new string[0];
+
+        // Act
+        var result = _service.ConvertValue(input, "int");
+
+        // Assert
+        Assert.IsType<int[]>(result);
+        var intArray = (int[])result!;
+        Assert.Empty(intArray);
+    }
+
+    [Fact]
+    public void ConvertValue_WithNullElementsInArray_ShouldHandleNulls()
+    {
+        // Arrange
+        var input = new string?[] { "1", null, "3" };
+
+        // Act
+        var result = _service.ConvertValue(input, "int");
+
+        // Assert
+        Assert.IsType<int[]>(result);
+        var intArray = (int[])result!;
+        Assert.Equal(3, intArray.Length);
+        Assert.Equal(1, intArray[0]);
+        Assert.Equal(0, intArray[1]); // null converts to default(int)
+        Assert.Equal(3, intArray[2]);
+    }
+
+    [Fact]
+    public void ConvertValue_WithHashSet_ShouldConvertToArray()
+    {
+        // Arrange
+        var input = new HashSet<string> { "1", "2", "3" };
+
+        // Act
+        var result = _service.ConvertValue(input, "int");
+
+        // Assert
+        Assert.IsType<int[]>(result);
+        var intArray = (int[])result!;
+        Assert.Equal(3, intArray.Length);
+        Assert.Contains(1, intArray);
+        Assert.Contains(2, intArray);
+        Assert.Contains(3, intArray);
+    }
+
+    [Fact]
+    public void ConvertValue_WithEnumerable_ShouldConvertToArray()
+    {
+        // Arrange
+        var input = System.Linq.Enumerable.Range(1, 3).Select(x => x.ToString());
+
+        // Act
+        var result = _service.ConvertValue(input, "int");
+
+        // Assert
+        Assert.IsType<int[]>(result);
+        var intArray = (int[])result!;
+        Assert.Equal(new int[] { 1, 2, 3 }, intArray);
+    }
+
+    [Fact]
+    public void ConvertValue_WithBooleanAlias_ShouldWork()
+    {
+        // Act
+        var result = _service.ConvertValue("true", "boolean");
+
+        // Assert
+        Assert.IsType<bool>(result);
+        Assert.True((bool)result!);
+    }
+
+    [Fact]
+    public void ConvertValue_WithDateAlias_ShouldWork()
+    {
+        // Act
+        var result = _service.ConvertValue("2023-01-01", "date");
+
+        // Assert
+        Assert.IsType<DateTime>(result);
+        var dateTime = (DateTime)result!;
+        Assert.Equal(2023, dateTime.Year);
+        Assert.Equal(1, dateTime.Month);
+        Assert.Equal(1, dateTime.Day);
+    }
 }

@@ -356,4 +356,133 @@ public class FluentRuleBuilderTests
         var addedGroup = mainNestedGroup.Groups[1];
         Assert.Same(existingGroup, addedGroup);
     }
+
+    [Fact]
+    public void Where_WithNullValue_ShouldAcceptNullValue()
+    {
+        // Arrange
+        var builder = new FluentRuleBuilder();
+
+        // Act
+        var result = builder
+            .Where("Field", "is_null", null)
+            .Build();
+
+        // Assert
+        Assert.Single(result.Rules);
+        Assert.Null(result.Rules[0].Value);
+    }
+
+    [Fact]
+    public void Where_WithExplicitType_ShouldSetType()
+    {
+        // Arrange
+        var builder = new FluentRuleBuilder();
+
+        // Act
+        var result = builder
+            .Where("Age", "greater", "25", "int")
+            .Build();
+
+        // Assert
+        Assert.Single(result.Rules);
+        Assert.Equal("int", result.Rules[0].Type);
+        Assert.Equal("25", result.Rules[0].Value);
+    }
+
+    [Fact]
+    public void Where_WithoutExplicitType_ShouldSetEmptyType()
+    {
+        // Arrange
+        var builder = new FluentRuleBuilder();
+
+        // Act
+        var result = builder
+            .Where("Name", "equal", "John")
+            .Build();
+
+        // Assert
+        Assert.Single(result.Rules);
+        Assert.Equal(string.Empty, result.Rules[0].Type);
+    }
+
+    [Fact]
+    public void Where_WithComplexValue_ShouldStoreComplexValue()
+    {
+        // Arrange
+        var builder = new FluentRuleBuilder();
+        var complexValue = new { Name = "John", Age = 25 };
+
+        // Act
+        var result = builder
+            .Where("User", "equal", complexValue)
+            .Build();
+
+        // Assert
+        Assert.Single(result.Rules);
+        Assert.Same(complexValue, result.Rules[0].Value);
+    }
+
+    [Fact]
+    public void Where_WithArrayValue_ShouldStoreArrayValue()
+    {
+        // Arrange
+        var builder = new FluentRuleBuilder();
+        var arrayValue = new[] { 1, 2, 3, 4, 5 };
+
+        // Act
+        var result = builder
+            .Where("Numbers", "in", arrayValue)
+            .Build();
+
+        // Assert
+        Assert.Single(result.Rules);
+        Assert.Same(arrayValue, result.Rules[0].Value);
+    }
+
+    [Fact]
+    public void Build_WithEmptyBuilder_ShouldReturnEmptyGroup()
+    {
+        // Arrange
+        var builder = new FluentRuleBuilder();
+
+        // Act
+        var result = builder.Build();
+
+        // Assert
+        Assert.Equal("AND", result.Condition);
+        Assert.Empty(result.Rules);
+        Assert.Empty(result.Groups);
+    }
+
+    [Fact]
+    public void Clear_WithUnclosedGroups_ShouldClearGroupStack()
+    {
+        // Arrange
+        var builder = new FluentRuleBuilder();
+        builder.BeginGroup("OR").Where("Field", "equal", "value");
+
+        // Act
+        var clearedBuilder = builder.Clear();
+        var result = clearedBuilder.Build(); // Should not throw
+
+        // Assert
+        Assert.Empty(result.Rules);
+        Assert.Empty(result.Groups);
+    }
+
+    [Fact]
+    public void FluentChaining_ShouldReturnSameInstance()
+    {
+        // Arrange
+        var builder = new FluentRuleBuilder();
+
+        // Act & Assert - All methods should return the same instance for chaining
+        Assert.Same(builder, builder.Where("Field1", "equal", "value1"));
+        Assert.Same(builder, builder.BeginGroup("OR"));
+        Assert.Same(builder, builder.Where("Field2", "equal", "value2"));
+        Assert.Same(builder, builder.EndGroup());
+        Assert.Same(builder, builder.AddGroup(new FilterGroup("AND")));
+        Assert.Same(builder, builder.Clear());
+    }
 }

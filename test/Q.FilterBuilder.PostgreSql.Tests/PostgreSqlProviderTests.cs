@@ -12,33 +12,12 @@ public class PostgreSqlProviderTests
     }
 
     [Fact]
-    public void ParameterPrefix_ShouldReturnDollarSign()
+    public void Properties_ShouldReturnCorrectValues()
     {
-        // Act
-        var result = _provider.ParameterPrefix;
-
-        // Assert
-        Assert.Equal("$", result);
-    }
-
-    [Fact]
-    public void AndOperator_ShouldReturnAND()
-    {
-        // Act
-        var result = _provider.AndOperator;
-
-        // Assert
-        Assert.Equal("AND", result);
-    }
-
-    [Fact]
-    public void OrOperator_ShouldReturnOR()
-    {
-        // Act
-        var result = _provider.OrOperator;
-
-        // Assert
-        Assert.Equal("OR", result);
+        // Act & Assert
+        Assert.Equal("$", _provider.ParameterPrefix);
+        Assert.Equal("AND", _provider.AndOperator);
+        Assert.Equal("OR", _provider.OrOperator);
     }
 
     [Fact]
@@ -67,29 +46,18 @@ public class PostgreSqlProviderTests
         Assert.Equal("\"User Name\"", result);
     }
 
-    [Fact]
-    public void FormatParameterName_ShouldReturnCorrectFormat()
+    [Theory]
+    [InlineData(0, "$1")]
+    [InlineData(1, "$2")]
+    [InlineData(5, "$6")]
+    [InlineData(10, "$11")]
+    [InlineData(99, "$100")]
+    public void FormatParameterName_WithVariousIndices_ShouldReturnCorrectFormat(int index, string expected)
     {
-        // Arrange
-        var parameterIndex = 0;
-
         // Act
-        var result = _provider.FormatParameterName(parameterIndex);
+        var result = _provider.FormatParameterName(index);
 
         // Assert
-        Assert.Equal("$1", result);
-    }
-
-    [Fact]
-    public void FormatParameterName_WithDifferentIndex_ShouldReturnCorrectFormat()
-    {
-        // Arrange
-        var parameterIndex = 5;
-
-        // Act
-        var result = _provider.FormatParameterName(parameterIndex);
-
-        // Assert
-        Assert.Equal("$6", result);
+        Assert.Equal(expected, result);
     }
 }
