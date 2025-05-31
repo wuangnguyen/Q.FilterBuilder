@@ -165,8 +165,9 @@ services.AddMySqlFilterBuilder(
 
 ## Supported Operators
 
-The MySQL provider supports all basic operators:
+The MySQL provider supports a comprehensive set of operators with MySQL-specific syntax:
 
+### Basic Comparison Operators
 | Operator | MySQL Output | Description |
 |----------|--------------|-------------|
 | `equal` | `` `field` = ? `` | Equality |
@@ -176,7 +177,84 @@ The MySQL provider supports all basic operators:
 | `less` | `` `field` < ? `` | Less than |
 | `less_or_equal` | `` `field` <= ? `` | Less than or equal |
 
-> **Note**: For advanced operators like `contains`, `in`, `between`, etc., you can register custom rule transformers or use the SQL Server provider which includes these operators.
+### Range Operators
+| Operator | MySQL Output | Description |
+|----------|--------------|-------------|
+| `between` | `` `field` BETWEEN ? AND ? `` | Range check (inclusive) |
+| `not_between` | `` `field` NOT BETWEEN ? AND ? `` | Exclude range |
+
+### Collection Operators
+| Operator | MySQL Output | Description |
+|----------|--------------|-------------|
+| `in` | `` `field` IN (?, ?, ?) `` | Value in list |
+| `not_in` | `` `field` NOT IN (?, ?, ?) `` | Value not in list |
+
+### String Operators (MySQL CONCAT syntax)
+| Operator | MySQL Output | Description |
+|----------|--------------|-------------|
+| `contains` | `` `field` LIKE CONCAT('%', ?, '%') `` | Contains substring |
+| `not_contains` | `` `field` NOT LIKE CONCAT('%', ?, '%') `` | Does not contain substring |
+| `begins_with` | `` `field` LIKE CONCAT(?, '%') `` | Starts with prefix |
+| `not_begins_with` | `` `field` NOT LIKE CONCAT(?, '%') `` | Does not start with prefix |
+| `ends_with` | `` `field` LIKE CONCAT('%', ?) `` | Ends with suffix |
+| `not_ends_with` | `` `field` NOT LIKE CONCAT('%', ?) `` | Does not end with suffix |
+
+### Null/Empty Check Operators
+| Operator | MySQL Output | Description |
+|----------|--------------|-------------|
+| `is_null` | `` `field` IS NULL `` | Field is null |
+| `is_not_null` | `` `field` IS NOT NULL `` | Field is not null |
+| `is_empty` | `` `field` = '' `` | Field is empty string |
+| `is_not_empty` | `` `field` != '' `` | Field is not empty string |
+
+### Date/Time Operators
+| Operator | MySQL Output | Description |
+|----------|--------------|-------------|
+| `date_diff` | `DATEDIFF(NOW(), field) = ?` | Date difference in days (default) |
+| `date_diff` | `TIMESTAMPDIFF(HOUR, field, NOW()) = ?` | Date difference in hours |
+
+## Date Operations
+
+The `date_diff` operator supports various interval types through metadata:
+
+```csharp
+// Days (default)
+var rule = new FilterRule("CreatedDate", "date_diff", 30);
+// Result: DATEDIFF(NOW(), `CreatedDate`) = ?
+
+// Hours
+var rule = new FilterRule("LastActivity", "date_diff", 24);
+rule.Metadata = new Dictionary<string, object?> { { "intervalType", "hour" } };
+// Result: TIMESTAMPDIFF(HOUR, `LastActivity`, NOW()) = ?
+
+// Other supported intervals: year, month, day, hour, minute, second
+```
+
+**Supported Interval Types:**
+- `year` - `TIMESTAMPDIFF(YEAR, field, NOW()) = ?`
+- `month` - `TIMESTAMPDIFF(MONTH, field, NOW()) = ?`
+- `day` - `DATEDIFF(NOW(), field) = ?` (default)
+- `hour` - `TIMESTAMPDIFF(HOUR, field, NOW()) = ?`
+- `minute` - `TIMESTAMPDIFF(MINUTE, field, NOW()) = ?`
+- `second` - `TIMESTAMPDIFF(SECOND, field, NOW()) = ?`
+
+## Fluent Configuration API
+
+The MySQL provider supports a modern fluent configuration API:
+
+```csharp
+services.AddMySqlFilterBuilder(options => options
+    .ConfigureTypeConversions(typeConversion =>
+    {
+        typeConversion.RegisterConverter("currency", new CurrencyConverter());
+        typeConversion.RegisterConverter("phone", new PhoneNumberConverter());
+    })
+    .ConfigureRuleTransformers(ruleTransformers =>
+    {
+        ruleTransformers.RegisterTransformer("fulltext", new MySqlFullTextSearchTransformer());
+        ruleTransformers.RegisterTransformer("json_contains", new MySqlJsonContainsTransformer());
+    }));
+```
 
 ## MySQL-Specific Features
 
@@ -264,6 +342,43 @@ mainGroup.Groups.Add(nameGroup);
 
 var (query, parameters) = _filterBuilder.Build(mainGroup);
 // Result: "`IsActive` = ? AND (`FirstName` = ? OR `LastName` = ?)"
+```
+
+### Advanced Operator Examples
+
+```csharp
+// String operations with MySQL CONCAT syntax
+var group = new FilterGroup("AND");
+group.Rules.Add(new FilterRule("Email", "contains", "@company.com"));
+group.Rules.Add(new FilterRule("Name", "begins_with", "John"));
+group.Rules.Add(new FilterRule("FileName", "ends_with", ".pdf"));
+
+var (query, parameters) = _filterBuilder.Build(group);
+// Result: "`Email` LIKE CONCAT('%', ?, '%') AND `Name` LIKE CONCAT(?, '%') AND `FileName` LIKE CONCAT('%', ?)"
+
+// Collection operations
+var statusGroup = new FilterGroup("OR");
+statusGroup.Rules.Add(new FilterRule("Status", "in", new[] { "Active", "Pending", "Review" }));
+statusGroup.Rules.Add(new FilterRule("Priority", "not_in", new[] { "Low", "Archived" }));
+
+var (query2, parameters2) = _filterBuilder.Build(statusGroup);
+// Result: "`Status` IN (?, ?, ?) OR `Priority` NOT IN (?, ?)"
+
+// Range and date operations
+var dateGroup = new FilterGroup("AND");
+dateGroup.Rules.Add(new FilterRule("Age", "between", new[] { 18, 65 }));
+dateGroup.Rules.Add(new FilterRule("CreatedDate", "date_diff", 30)); // Last 30 days
+
+var (query3, parameters3) = _filterBuilder.Build(dateGroup);
+// Result: "`Age` BETWEEN ? AND ? AND DATEDIFF(NOW(), `CreatedDate`) = ?"
+
+// Null/empty checks
+var validationGroup = new FilterGroup("AND");
+validationGroup.Rules.Add(new FilterRule("Email", "is_not_null", null));
+validationGroup.Rules.Add(new FilterRule("Description", "is_not_empty", null));
+
+var (query4, parameters4) = _filterBuilder.Build(validationGroup);
+// Result: "`Email` IS NOT NULL AND `Description` != ''"
 ```
 
 ## Troubleshooting

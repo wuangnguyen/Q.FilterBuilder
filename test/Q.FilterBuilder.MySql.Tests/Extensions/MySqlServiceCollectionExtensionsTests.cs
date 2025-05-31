@@ -113,4 +113,92 @@ public class MySqlServiceCollectionExtensionsTests
         Assert.Contains(">", query);      // Greater than operator
         Assert.Equal(2, parameters.Length); // 1 for equal + 1 for greater
     }
+
+    [Fact]
+    public void AddMySqlFilterBuilder_WithOptions_ShouldRegisterFilterBuilder()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        // Act
+        services.AddMySqlFilterBuilder(options => options
+            .ConfigureTypeConversions(typeConversion =>
+            {
+                // Custom type conversion configuration
+            })
+            .ConfigureRuleTransformers(ruleTransformers =>
+            {
+                // Custom rule transformer configuration
+            }));
+        var serviceProvider = services.BuildServiceProvider();
+
+        // Assert
+        var filterBuilder = serviceProvider.GetService<IFilterBuilder>();
+        Assert.NotNull(filterBuilder);
+    }
+
+    [Fact]
+    public void AddMySqlFilterBuilder_WithNullOptions_ShouldRegisterFilterBuilder()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        // Act
+        services.AddMySqlFilterBuilder(null);
+        var serviceProvider = services.BuildServiceProvider();
+
+        // Assert
+        var filterBuilder = serviceProvider.GetService<IFilterBuilder>();
+        Assert.NotNull(filterBuilder);
+    }
+
+    [Fact]
+    public void AddMySqlFilterBuilder_ShouldRegisterMySqlSpecificTransformers()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddMySqlFilterBuilder();
+        var serviceProvider = services.BuildServiceProvider();
+        var ruleTransformerService = serviceProvider.GetRequiredService<IRuleTransformerService>();
+
+        // Act & Assert - Test that MySQL-specific transformers are registered
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("between"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("not_between"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("in"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("not_in"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("contains"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("not_contains"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("begins_with"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("not_begins_with"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("ends_with"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("not_ends_with"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("is_null"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("is_not_null"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("is_empty"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("is_not_empty"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("date_diff"));
+    }
+
+    [Fact]
+    public void AddMySqlFilterBuilder_ShouldGenerateMySqlSpecificSyntax()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddMySqlFilterBuilder();
+        var serviceProvider = services.BuildServiceProvider();
+        var filterBuilder = serviceProvider.GetRequiredService<IFilterBuilder>();
+
+        var group = new FilterGroup("AND");
+        group.Rules.Add(new FilterRule("Name", "contains", "John"));
+        group.Rules.Add(new FilterRule("Status", "in", new[] { "Active", "Pending" }));
+
+        // Act
+        var (query, parameters) = filterBuilder.Build(group);
+
+        // Assert
+        Assert.Contains("LIKE CONCAT", query); // MySQL concatenation syntax
+        Assert.Contains("IN (", query);        // IN operator
+        Assert.Contains("?", query);           // MySQL parameter syntax
+        Assert.Equal(3, parameters.Length);   // 1 for contains + 2 for in
+    }
 }

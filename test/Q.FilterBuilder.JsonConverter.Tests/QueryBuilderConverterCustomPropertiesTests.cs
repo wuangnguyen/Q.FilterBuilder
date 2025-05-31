@@ -251,9 +251,9 @@ public class QueryBuilderConverterCustomPropertiesTests
         Assert.NotNull(result);
         Assert.Single(result.Rules);
         Assert.NotNull(result.Rules[0].Metadata);
-        Assert.Equal(2, result.Rules[0].Metadata.Count);
-        Assert.Equal("yyyy-MM-dd", result.Rules[0].Metadata["format"]);
-        Assert.Equal("UTC", result.Rules[0].Metadata["timezone"]);
+        Assert.Equal(2, result.Rules[0].Metadata!.Count);
+        Assert.Equal("yyyy-MM-dd", result.Rules[0].Metadata!["format"]);
+        Assert.Equal("UTC", result.Rules[0].Metadata!["timezone"]);
     }
 
     [Fact]

@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Q.FilterBuilder.Core.RuleTransformers;
 using Q.FilterBuilder.Core.Extensions;
 using Q.FilterBuilder.Core.TypeConversion;
+using Q.FilterBuilder.MySql.RuleTransformers;
 
 namespace Q.FilterBuilder.MySql.Extensions;
 
@@ -26,120 +27,119 @@ public static class MySqlServiceCollectionExtensions
             throw new ArgumentNullException(nameof(services));
         }
 
-        // Create MySQL provider
-        var mySqlFormatProvider = new MySqlFormatProvider();
-
-        // Register FilterBuilder with MySQL provider (uses default rule transformers)
-        services.AddFilterBuilder(mySqlFormatProvider);
-
-        return services;
+        return services.AddMySqlFilterBuilder(null);
     }
 
     /// <summary>
     /// Adds the FilterBuilder service configured for MySQL to the dependency injection container
-    /// with custom type conversion configuration.
+    /// with custom configuration options.
     /// </summary>
     /// <param name="services">The service collection.</param>
-    /// <param name="configureTypeConversion">Action to configure custom type converters.</param>
+    /// <param name="configureOptions">Action to configure MySQL FilterBuilder options.</param>
     /// <returns>The service collection for chaining.</returns>
     /// <exception cref="ArgumentNullException">Thrown when services is null.</exception>
     public static IServiceCollection AddMySqlFilterBuilder(
         this IServiceCollection services,
-        Action<ITypeConversionService> configureTypeConversion)
+        Action<MySqlFilterBuilderOptions>? configureOptions = null)
     {
         if (services == null)
         {
             throw new ArgumentNullException(nameof(services));
         }
 
-        if (configureTypeConversion == null)
-        {
-            throw new ArgumentNullException(nameof(configureTypeConversion));
-        }
+        var options = new MySqlFilterBuilderOptions();
+        configureOptions?.Invoke(options);
 
-        // Create MySQL provider
-        var mySqlFormatProvider = new MySqlFormatProvider();
+        return services.AddFilterBuilder(
+            new MySqlFormatProvider(),
+            options.TypeConversionConfiguration,
+            ruleTransformers =>
+            {
+                // Core transformers (=, !=, <, <=, >, >=) are already registered
+                // by RuleTransformerService constructor
 
-        // Register FilterBuilder with MySQL provider and custom type conversion
-        services.AddFilterBuilder(
-            mySqlFormatProvider,
-            configureTypeConversion);
+                // Add MySQL-specific transformers
+                RegisterMySqlTransformers(ruleTransformers);
 
-        return services;
+                // Apply any custom configuration
+                options.RuleTransformerConfiguration?.Invoke(ruleTransformers);
+            });
     }
 
     /// <summary>
-    /// Adds the FilterBuilder service configured for MySQL to the dependency injection container
-    /// with custom rule transformer configuration.
+    /// Registers MySQL specific rule transformers.
+    /// Note: Core transformers (=, !=, <, <=, >, >=) are already registered by the base RuleTransformerService.
     /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configureRuleTransformers">Action to configure custom rule transformers.</param>
-    /// <returns>The service collection for chaining.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when services is null.</exception>
-    public static IServiceCollection AddMySqlFilterBuilder(
-        this IServiceCollection services,
-        Action<IRuleTransformerService> configureRuleTransformers)
+    /// <param name="service">The rule transformer service to register transformers with.</param>
+    private static void RegisterMySqlTransformers(IRuleTransformerService service)
     {
-        if (services == null)
+        // Register range operators
+        service.RegisterTransformer("between", new BetweenRuleTransformer());
+        service.RegisterTransformer("not_between", new NotBetweenRuleTransformer());
+
+        // Register collection operators
+        service.RegisterTransformer("in", new InRuleTransformer());
+        service.RegisterTransformer("not_in", new NotInRuleTransformer());
+
+        // Register string operators
+        service.RegisterTransformer("contains", new ContainsRuleTransformer());
+        service.RegisterTransformer("not_contains", new NotContainsRuleTransformer());
+        service.RegisterTransformer("begins_with", new BeginsWithRuleTransformer());
+        service.RegisterTransformer("not_begins_with", new NotBeginsWithRuleTransformer());
+        service.RegisterTransformer("ends_with", new EndsWithRuleTransformer());
+        service.RegisterTransformer("not_ends_with", new NotEndsWithRuleTransformer());
+
+        // Register null check operators
+        service.RegisterTransformer("is_null", new IsNullRuleTransformer());
+        service.RegisterTransformer("is_not_null", new IsNotNullRuleTransformer());
+        service.RegisterTransformer("is_empty", new IsEmptyRuleTransformer());
+        service.RegisterTransformer("is_not_empty", new IsNotEmptyRuleTransformer());
+
+        // Register date operators
+        service.RegisterTransformer("date_diff", new DateDiffRuleTransformer());
+    }
+
+}
+
+/// <summary>
+/// Configuration options for MySQL FilterBuilder.
+/// </summary>
+public class MySqlFilterBuilderOptions
+{
+    internal Action<ITypeConversionService>? TypeConversionConfiguration { get; private set; }
+    internal Action<IRuleTransformerService>? RuleTransformerConfiguration { get; private set; }
+
+    /// <summary>
+    /// Configures custom type converters for the MySQL FilterBuilder.
+    /// </summary>
+    /// <param name="configure">Action to configure type converters.</param>
+    /// <returns>The options instance for chaining.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when configure is null.</exception>
+    public MySqlFilterBuilderOptions ConfigureTypeConversions(Action<ITypeConversionService> configure)
+    {
+        if (configure == null)
         {
-            throw new ArgumentNullException(nameof(services));
+            throw new ArgumentNullException(nameof(configure));
         }
 
-        if (configureRuleTransformers == null)
-        {
-            throw new ArgumentNullException(nameof(configureRuleTransformers));
-        }
-
-        // Create MySQL provider
-        var mySqlFormatProvider = new MySqlFormatProvider();
-
-        // Register FilterBuilder with MySQL provider and custom rule transformers
-        services.AddFilterBuilder(
-            mySqlFormatProvider,
-            null, // Use default type conversion
-            configureRuleTransformers);
-
-        return services;
+        TypeConversionConfiguration = configure;
+        return this;
     }
 
     /// <summary>
-    /// Adds the FilterBuilder service configured for MySQL to the dependency injection container
-    /// with custom type conversion and rule transformer configuration.
+    /// Configures custom rule transformers for the MySQL FilterBuilder.
     /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configureTypeConversion">Action to configure custom type converters.</param>
-    /// <param name="configureRuleTransformers">Action to configure custom rule transformers.</param>
-    /// <returns>The service collection for chaining.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when services is null.</exception>
-    public static IServiceCollection AddMySqlFilterBuilder(
-        this IServiceCollection services,
-        Action<ITypeConversionService> configureTypeConversion,
-        Action<IRuleTransformerService> configureRuleTransformers)
+    /// <param name="configure">Action to configure rule transformers.</param>
+    /// <returns>The options instance for chaining.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when configure is null.</exception>
+    public MySqlFilterBuilderOptions ConfigureRuleTransformers(Action<IRuleTransformerService> configure)
     {
-        if (services == null)
+        if (configure == null)
         {
-            throw new ArgumentNullException(nameof(services));
+            throw new ArgumentNullException(nameof(configure));
         }
 
-        if (configureTypeConversion == null)
-        {
-            throw new ArgumentNullException(nameof(configureTypeConversion));
-        }
-
-        if (configureRuleTransformers == null)
-        {
-            throw new ArgumentNullException(nameof(configureRuleTransformers));
-        }
-
-        // Create MySQL provider
-        var mySqlFormatProvider = new MySqlFormatProvider();
-
-        // Register FilterBuilder with MySQL provider and custom configuration
-        services.AddFilterBuilder(
-            mySqlFormatProvider,
-            configureTypeConversion,
-            configureRuleTransformers);
-
-        return services;
+        RuleTransformerConfiguration = configure;
+        return this;
     }
 }
