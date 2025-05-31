@@ -65,37 +65,75 @@ var (query, parameters) = _filterBuilder.Build(group);
 
 ### 3. PostgreSQL Specific Features
 
-The PostgreSQL provider generates PostgreSQL-specific syntax:
+The PostgreSQL provider generates PostgreSQL-specific syntax with comprehensive operator support:
 
 ```csharp
 var group = new FilterGroup("AND");
-group.Rules.Add(new FilterRule("Name", "equal", "John"));
-group.Rules.Add(new FilterRule("Age", "greater_or_equal", 18));
-group.Rules.Add(new FilterRule("Status", "not_equal", "Inactive"));
+group.Rules.Add(new FilterRule("Name", "contains", "John"));
+group.Rules.Add(new FilterRule("Age", "between", new[] { 18, 65 }));
+group.Rules.Add(new FilterRule("Status", "in", new[] { "Active", "Pending" }));
+group.Rules.Add(new FilterRule("Email", "is_not_null"));
+group.Rules.Add(new FilterRule("Department", "begins_with", "IT"));
 
 var (query, parameters) = _filterBuilder.Build(group);
-// Result: "\"Name\" = $1 AND \"Age\" >= $2 AND \"Status\" != $3"
-// Parameters: ["John", 18, "Inactive"]
+// Result: "\"Name\" LIKE '%' || $1 || '%' AND \"Age\" BETWEEN $2 AND $3
+//          AND \"Status\" IN ($4, $5) AND \"Email\" IS NOT NULL
+//          AND \"Department\" LIKE $6 || '%'"
+// Parameters: ["John", 18, 65, "Active", "Pending", "IT"]
+```
+
+### 4. Date Operations with PostgreSQL
+
+```csharp
+var group = new FilterGroup("AND");
+
+// Find records created in the last 30 days
+group.Rules.Add(new FilterRule("CreatedDate", "date_diff", 30));
+
+// Find records updated in the last 24 hours
+var hourRule = new FilterRule("UpdatedDate", "date_diff", 24);
+hourRule.Metadata = new Dictionary<string, object?> { { "intervalType", "hour" } };
+group.Rules.Add(hourRule);
+
+var (query, parameters) = _filterBuilder.Build(group);
+// Result: "EXTRACT(day FROM NOW() - \"CreatedDate\") = $1
+//          AND EXTRACT(hour FROM NOW() - \"UpdatedDate\") = $2"
+// Parameters: [30, 24]
 ```
 
 ## Advanced Usage
+
+### Fluent Configuration API
+
+The PostgreSQL provider supports a modern fluent configuration API:
+
+```csharp
+using Q.FilterBuilder.PostgreSql.Extensions;
+
+// Basic registration
+services.AddPostgreSqlFilterBuilder();
+
+// With fluent configuration
+services.AddPostgreSqlFilterBuilder(options => options
+    .ConfigureTypeConversions(tc =>
+    {
+        // Register custom type converters
+        tc.RegisterConverter("uuid", new UuidConverter());
+        tc.RegisterConverter("array", new PostgreSqlArrayConverter());
+    })
+    .ConfigureRuleTransformers(rt =>
+    {
+        // Register custom rule transformers
+        rt.RegisterTransformer("fulltext", new PostgreSqlFullTextSearchTransformer());
+        rt.RegisterTransformer("json_contains", new PostgreSqlJsonContainsTransformer());
+    }));
+```
 
 ### Custom Type Converters
 
 Register custom type converters for specialized data transformations:
 
 ```csharp
-using Q.FilterBuilder.Core.TypeConversion;
-
-services.AddPostgreSqlFilterBuilder(typeConversion =>
-{
-    // Register a custom converter for UUID formatting
-    typeConversion.RegisterConverter("uuid", new UuidConverter());
-    
-    // Register a custom converter for PostgreSQL arrays
-    typeConversion.RegisterConverter("array", new PostgreSqlArrayConverter());
-});
-
 // Example custom converter for UUID
 public class UuidConverter : ITypeConverter<Guid>
 {
@@ -168,7 +206,9 @@ services.AddPostgreSqlFilterBuilder(
 
 ## Supported Operators
 
-The PostgreSQL provider supports all basic operators:
+The PostgreSQL provider supports a comprehensive set of operators with PostgreSQL-specific syntax:
+
+### Basic Comparison Operators
 
 | Operator | PostgreSQL Output | Description |
 |----------|-------------------|-------------|
@@ -179,7 +219,62 @@ The PostgreSQL provider supports all basic operators:
 | `less` | `"field" < $1` | Less than |
 | `less_or_equal` | `"field" <= $1` | Less than or equal |
 
-> **Note**: For advanced operators like `contains`, `in`, `between`, etc., you can register custom rule transformers or use the SQL Server provider which includes these operators.
+### Range Operators
+
+| Operator | PostgreSQL Output | Description |
+|----------|-------------------|-------------|
+| `between` | `"field" BETWEEN $1 AND $2` | Range check (inclusive) |
+| `not_between` | `"field" NOT BETWEEN $1 AND $2` | Exclude range |
+
+### Collection Operators
+
+| Operator | PostgreSQL Output | Description |
+|----------|-------------------|-------------|
+| `in` | `"field" IN ($1, $2, $3)` | Value in collection |
+| `not_in` | `"field" NOT IN ($1, $2, $3)` | Value not in collection |
+
+### String Operators (PostgreSQL Concatenation)
+
+| Operator | PostgreSQL Output | Description |
+|----------|-------------------|-------------|
+| `contains` | `"field" LIKE '%' \|\| $1 \|\| '%'` | Contains substring |
+| `not_contains` | `"field" NOT LIKE '%' \|\| $1 \|\| '%'` | Does not contain substring |
+| `begins_with` | `"field" LIKE $1 \|\| '%'` | Starts with string |
+| `not_begins_with` | `"field" NOT LIKE $1 \|\| '%'` | Does not start with string |
+| `ends_with` | `"field" LIKE '%' \|\| $1` | Ends with string |
+| `not_ends_with` | `"field" NOT LIKE '%' \|\| $1` | Does not end with string |
+
+### Null/Empty Check Operators
+
+| Operator | PostgreSQL Output | Description |
+|----------|-------------------|-------------|
+| `is_null` | `"field" IS NULL` | Field is null |
+| `is_not_null` | `"field" IS NOT NULL` | Field is not null |
+| `is_empty` | `"field" = ''` | Field is empty string |
+| `is_not_empty` | `"field" != ''` | Field is not empty string |
+
+### Date/Time Operators
+
+| Operator | PostgreSQL Output | Description |
+|----------|-------------------|-------------|
+| `date_diff` | `EXTRACT(day FROM NOW() - "field") = $1` | Date difference (configurable interval) |
+
+#### Date Diff Interval Types
+
+The `date_diff` operator supports PostgreSQL's EXTRACT intervals:
+
+```csharp
+// Default interval is 'day'
+new FilterRule("CreatedDate", "date_diff", 30)
+// Result: EXTRACT(day FROM NOW() - "CreatedDate") = $1
+
+// Custom interval via metadata
+var rule = new FilterRule("LastLogin", "date_diff", 24);
+rule.Metadata = new Dictionary<string, object?> { { "intervalType", "hour" } };
+// Result: EXTRACT(hour FROM NOW() - "LastLogin") = $1
+```
+
+**Supported intervals**: `year`, `month`, `day`, `hour`, `minute`, `second`
 
 ## PostgreSQL-Specific Features
 
