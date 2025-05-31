@@ -86,14 +86,15 @@ Register custom type converters for specialized data transformations:
 ```csharp
 using Q.FilterBuilder.Core.TypeConversion;
 
-services.AddSqlServerFilterBuilder(typeConversion =>
-{
-    // Register a custom converter for currency formatting
-    typeConversion.RegisterConverter("currency", new CurrencyConverter());
+services.AddSqlServerFilterBuilder(options => options
+    .ConfigureTypeConversion(typeConversion =>
+    {
+        // Register a custom converter for currency formatting
+        typeConversion.RegisterConverter("currency", new CurrencyConverter());
 
-    // Register a custom converter for phone number formatting
-    typeConversion.RegisterConverter("phone", new PhoneNumberConverter());
-});
+        // Register a custom converter for phone number formatting
+        typeConversion.RegisterConverter("phone", new PhoneNumberConverter());
+    }));
 
 // Example custom converter
 public class CurrencyConverter : ITypeConverter
@@ -119,14 +120,15 @@ Register custom rule transformers for specialized query operations:
 ```csharp
 using Q.FilterBuilder.Core.RuleTransformers;
 
-services.AddSqlServerFilterBuilder(ruleTransformers =>
-{
-    // Register a custom transformer for full-text search
-    ruleTransformers.RegisterTransformer("fulltext", new FullTextSearchTransformer());
+services.AddSqlServerFilterBuilder(options => options
+    .ConfigureRuleTransformers(ruleTransformers =>
+    {
+        // Register a custom transformer for full-text search
+        ruleTransformers.RegisterTransformer("fulltext", new FullTextSearchTransformer());
 
-    // Register a custom transformer for JSON queries
-    ruleTransformers.RegisterTransformer("json_contains", new JsonContainsTransformer());
-});
+        // Register a custom transformer for JSON queries
+        ruleTransformers.RegisterTransformer("json_contains", new JsonContainsTransformer());
+    }));
 
 // Example custom transformer
 public class FullTextSearchTransformer : BaseRuleTransformer
@@ -149,17 +151,17 @@ public class FullTextSearchTransformer : BaseRuleTransformer
 ### Both Custom Type Converters and Rule Transformers
 
 ```csharp
-services.AddSqlServerFilterBuilder(
-    typeConversion =>
+services.AddSqlServerFilterBuilder(options => options
+    .ConfigureTypeConversion(typeConversion =>
     {
         typeConversion.RegisterConverter("currency", new CurrencyConverter());
         typeConversion.RegisterConverter("phone", new PhoneNumberConverter());
-    },
-    ruleTransformers =>
+    })
+    .ConfigureRuleTransformers(ruleTransformers =>
     {
         ruleTransformers.RegisterTransformer("fulltext", new FullTextSearchTransformer());
         ruleTransformers.RegisterTransformer("json_contains", new JsonContainsTransformer());
-    });
+    }));
 ```
 
 ## Supported Operators
@@ -321,11 +323,12 @@ public class JsonConverter : ITypeConverter
 }
 
 // Registration
-services.AddSqlServerFilterBuilder(typeConversion =>
-{
-    typeConversion.RegisterConverter("status", new StatusEnumConverter());
-    typeConversion.RegisterConverter("json", new JsonConverter());
-});
+services.AddSqlServerFilterBuilder(options => options
+    .ConfigureTypeConversion(typeConversion =>
+    {
+        typeConversion.RegisterConverter("status", new StatusEnumConverter());
+        typeConversion.RegisterConverter("json", new JsonConverter());
+    }));
 ```
 
 ### Advanced Custom Rule Transformers
@@ -369,11 +372,12 @@ public class JsonPathTransformer : BaseRuleTransformer
 }
 
 // Registration
-services.AddSqlServerFilterBuilder(ruleTransformers =>
-{
-    ruleTransformers.RegisterTransformer("fulltext", new FullTextSearchTransformer());
-    ruleTransformers.RegisterTransformer("json_path", new JsonPathTransformer());
-});
+services.AddSqlServerFilterBuilder(options => options
+    .ConfigureRuleTransformers(ruleTransformers =>
+    {
+        ruleTransformers.RegisterTransformer("fulltext", new FullTextSearchTransformer());
+        ruleTransformers.RegisterTransformer("json_path", new JsonPathTransformer());
+    }));
 ```
 
 ### Usage with Custom Operators

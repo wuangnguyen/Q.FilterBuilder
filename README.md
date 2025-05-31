@@ -68,6 +68,19 @@ using Q.FilterBuilder.SqlServer.Extensions;
 // 1. Register with DI
 services.AddSqlServerFilterBuilder();
 
+// OR with custom configuration (SQL Server uses modern options pattern)
+services.AddSqlServerFilterBuilder(options => options
+    .ConfigureTypeConversion(tc => {
+        tc.RegisterConverter("custom", new CustomConverter());
+        tc.RegisterConverter("custom2", new CustomConverter2());
+        tc.RegisterConverter("custom3", new CustomConverter3());
+    }))
+    .ConfigureRuleTransformers(rt => {
+        rt.RegisterTransformer("custom_op", new CustomTransformer());
+        rt.RegisterTransformer("custom_op2", new CustomTransformer2());
+        rt.RegisterTransformer("custom_op3", new CustomTransformer3());
+    }));
+
 // 2. Build filters using JSON Converter
 var json = "<json string from UI>";
 var group = JsonSerializer.Deserialize<FilterGroup>(json, new JsonSerializerOptions

@@ -14,190 +14,112 @@ public static class SqlServerServiceCollectionExtensions
 {
     /// <summary>
     /// Adds the FilterBuilder service configured for SQL Server to the dependency injection container.
-    /// This method registers all necessary services including the SQL Server provider,
-    /// SQL Server-specific rule transformers, type conversion service, and the FilterBuilder itself.
     /// </summary>
     /// <param name="services">The service collection.</param>
-    /// <returns>The service collection for chaining.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when services is null.</exception>
-    public static IServiceCollection AddSqlServerFilterBuilder(this IServiceCollection services)
-    {
-        if (services == null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        // Create SQL Server provider and rule transformer service
-        var sqlServerFormatProvider = new SqlServerFormatProvider();
-        var sqlServerRuleTransformerService = new SqlServerRuleTransformerService();
-
-        // Register FilterBuilder with SQL Server provider and rule transformer service
-        services.AddFilterBuilder(sqlServerFormatProvider, sqlServerRuleTransformerService);
-
-        return services;
-    }
-
-    /// <summary>
-    /// Adds the FilterBuilder service configured for SQL Server to the dependency injection container
-    /// with custom type conversion configuration.
-    /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configureTypeConversion">Action to configure custom type converters.</param>
+    /// <param name="configureOptions">Optional action to configure SQL Server FilterBuilder options.</param>
     /// <returns>The service collection for chaining.</returns>
     /// <exception cref="ArgumentNullException">Thrown when services is null.</exception>
     public static IServiceCollection AddSqlServerFilterBuilder(
         this IServiceCollection services,
-        Action<ITypeConversionService> configureTypeConversion)
+        Action<SqlServerFilterBuilderOptions>? configureOptions = null)
     {
         if (services == null)
         {
             throw new ArgumentNullException(nameof(services));
         }
 
-        if (configureTypeConversion == null)
-        {
-            throw new ArgumentNullException(nameof(configureTypeConversion));
-        }
+        var options = new SqlServerFilterBuilderOptions();
+        configureOptions?.Invoke(options);
 
-        // Create SQL Server provider and rule transformer service
-        var sqlServerFormatProvider = new SqlServerFormatProvider();
-        var sqlServerRuleTransformerService = new SqlServerRuleTransformerService();
-
-        // Register FilterBuilder with SQL Server provider, custom type conversion, and SQL Server transformers
-        services.AddFilterBuilder(
-            sqlServerFormatProvider,
-            configureTypeConversion,
+        return services.AddFilterBuilder(
+            new SqlServerFormatProvider(),
+            options.TypeConversionConfiguration,
             ruleTransformers =>
             {
-                // Copy all SQL Server transformers to the new service
-                CopyTransformersFromService(sqlServerRuleTransformerService, ruleTransformers);
-            });
+                // Core transformers (=, !=, <, <=, >, >=) are already registered
+                // by RuleTransformerService constructor
 
-        return services;
+                // Add SQL Server-specific transformers
+                RegisterSqlServerTransformers(ruleTransformers);
+
+                // Apply any custom configuration
+                options.RuleTransformerConfiguration?.Invoke(ruleTransformers);
+            });
     }
 
     /// <summary>
-    /// Adds the FilterBuilder service configured for SQL Server to the dependency injection container
-    /// with custom rule transformer configuration.
+    /// Registers SQL Server specific rule transformers.
+    /// Note: Core transformers (=, !=, <, <=, >, >=) are already registered by the base RuleTransformerService.
     /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configureRuleTransformers">Action to configure custom rule transformers.</param>
-    /// <returns>The service collection for chaining.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when services is null.</exception>
-    public static IServiceCollection AddSqlServerFilterBuilder(
-        this IServiceCollection services,
-        Action<IRuleTransformerService> configureRuleTransformers)
+    /// <param name="service">The rule transformer service to register transformers with.</param>
+    private static void RegisterSqlServerTransformers(IRuleTransformerService service)
     {
-        if (services == null)
+        // Register range operators
+        service.RegisterTransformer("between", new BetweenRuleTransformer());
+        service.RegisterTransformer("not_between", new NotBetweenRuleTransformer());
+
+        // Register collection operators
+        service.RegisterTransformer("in", new InRuleTransformer());
+        service.RegisterTransformer("not_in", new NotInRuleTransformer());
+
+        // Register string operators
+        service.RegisterTransformer("contains", new ContainsRuleTransformer());
+        service.RegisterTransformer("not_contains", new NotContainsRuleTransformer());
+        service.RegisterTransformer("begins_with", new BeginsWithRuleTransformer());
+        service.RegisterTransformer("not_begins_with", new NotBeginsWithRuleTransformer());
+        service.RegisterTransformer("ends_with", new EndsWithRuleTransformer());
+        service.RegisterTransformer("not_ends_with", new NotEndsWithRuleTransformer());
+
+        // Register null check operators
+        service.RegisterTransformer("is_null", new IsNullRuleTransformer());
+        service.RegisterTransformer("is_not_null", new IsNotNullRuleTransformer());
+        service.RegisterTransformer("is_empty", new IsEmptyRuleTransformer());
+        service.RegisterTransformer("is_not_empty", new IsNotEmptyRuleTransformer());
+
+        // Register date operators
+        service.RegisterTransformer("date_diff", new DateDiffRuleTransformer());
+    }
+}
+
+/// <summary>
+/// Configuration options for SQL Server FilterBuilder.
+/// </summary>
+public class SqlServerFilterBuilderOptions
+{
+    internal Action<ITypeConversionService>? TypeConversionConfiguration { get; private set; }
+    internal Action<IRuleTransformerService>? RuleTransformerConfiguration { get; private set; }
+
+    /// <summary>
+    /// Configures custom type conversions for the SQL Server FilterBuilder.
+    /// </summary>
+    /// <param name="configure">Action to configure type conversions.</param>
+    /// <returns>The options instance for chaining.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when configure is null.</exception>
+    public SqlServerFilterBuilderOptions ConfigureTypeConversion(Action<ITypeConversionService> configure)
+    {
+        if (configure == null)
         {
-            throw new ArgumentNullException(nameof(services));
+            throw new ArgumentNullException(nameof(configure));
         }
 
-        if (configureRuleTransformers == null)
-        {
-            throw new ArgumentNullException(nameof(configureRuleTransformers));
-        }
-
-        // Create SQL Server provider and rule transformer service
-        var sqlServerFormatProvider = new SqlServerFormatProvider();
-        var sqlServerRuleTransformerService = new SqlServerRuleTransformerService();
-
-        // Register FilterBuilder with SQL Server provider and custom rule transformers
-        services.AddFilterBuilder(
-            sqlServerFormatProvider,
-            null, // Use default type conversion
-            ruleTransformers =>
-            {
-                // First copy SQL Server specific transformers
-                CopyTransformersFromService(sqlServerRuleTransformerService, ruleTransformers);
-                // Then allow custom configuration
-                configureRuleTransformers(ruleTransformers);
-            });
-
-        return services;
+        TypeConversionConfiguration = configure;
+        return this;
     }
 
     /// <summary>
-    /// Adds the FilterBuilder service configured for SQL Server to the dependency injection container
-    /// with custom type conversion and rule transformer configuration.
+    /// Configures custom rule transformers for the SQL Server FilterBuilder.
     /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configureTypeConversion">Action to configure custom type converters.</param>
-    /// <param name="configureRuleTransformers">Action to configure custom rule transformers.</param>
-    /// <returns>The service collection for chaining.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when services is null.</exception>
-    public static IServiceCollection AddSqlServerFilterBuilder(
-        this IServiceCollection services,
-        Action<ITypeConversionService> configureTypeConversion,
-        Action<IRuleTransformerService> configureRuleTransformers)
+    /// <param name="configure">Action to configure rule transformers.</param>
+    /// <returns>The options instance for chaining.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when configure is null.</exception>
+    public SqlServerFilterBuilderOptions ConfigureRuleTransformers(Action<IRuleTransformerService> configure)
     {
-        if (services == null)
+        if (configure == null)
         {
-            throw new ArgumentNullException(nameof(services));
+            throw new ArgumentNullException(nameof(configure));
         }
 
-        if (configureTypeConversion == null)
-        {
-            throw new ArgumentNullException(nameof(configureTypeConversion));
-        }
-
-        if (configureRuleTransformers == null)
-        {
-            throw new ArgumentNullException(nameof(configureRuleTransformers));
-        }
-
-        // Create SQL Server provider and rule transformer service
-        var sqlServerFormatProvider = new SqlServerFormatProvider();
-        var sqlServerRuleTransformerService = new SqlServerRuleTransformerService();
-
-        // Register FilterBuilder with SQL Server provider and custom configuration
-        services.AddFilterBuilder(
-            sqlServerFormatProvider,
-            configureTypeConversion,
-            ruleTransformers =>
-            {
-                // First copy SQL Server specific transformers
-                CopyTransformersFromService(sqlServerRuleTransformerService, ruleTransformers);
-                // Then allow custom configuration
-                configureRuleTransformers(ruleTransformers);
-            });
-
-        return services;
-    }
-
-
-
-    /// <summary>
-    /// Copies transformers from a source service to a target service.
-    /// This method attempts to get known SQL Server transformers and register them in the target service.
-    /// </summary>
-    /// <param name="sourceService">The source service to copy transformers from.</param>
-    /// <param name="targetService">The target service to register transformers to.</param>
-    private static void CopyTransformersFromService(IRuleTransformerService sourceService, IRuleTransformerService targetService)
-    {
-        // List of known SQL Server transformer operators
-        var sqlServerOperators = new[]
-        {
-            "between", "not_between",
-            "in", "not_in",
-            "contains", "not_contains", "begins_with", "not_begins_with", "ends_with", "not_ends_with",
-            "is_null", "is_not_null", "is_empty", "is_not_empty",
-            "date_diff"
-        };
-
-        // Copy each transformer from source to target
-        foreach (var operatorName in sqlServerOperators)
-        {
-            try
-            {
-                var transformer = sourceService.GetRuleTransformer(operatorName);
-                targetService.RegisterTransformer(operatorName, transformer);
-            }
-            catch (NotImplementedException)
-            {
-                // Skip transformers that don't exist in the source service
-                // This provides resilience if the SqlServerRuleTransformerService changes
-            }
-        }
+        RuleTransformerConfiguration = configure;
+        return this;
     }
 }

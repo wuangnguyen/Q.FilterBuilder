@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Q.FilterBuilder.Core;
 using Q.FilterBuilder.Core.Models;
@@ -12,7 +13,7 @@ namespace Q.FilterBuilder.SqlServer.Tests.Extensions;
 public class SqlServerServiceCollectionExtensionsTests
 {
     [Fact]
-    public void AddSqlServerFilterBuilder_ShouldRegisterFilterBuilder()
+    public void AddSqlServerFilterBuilder_WithoutOptions_ShouldRegisterAllServices()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -23,36 +24,11 @@ public class SqlServerServiceCollectionExtensionsTests
 
         // Assert
         var filterBuilder = serviceProvider.GetService<IFilterBuilder>();
-        Assert.NotNull(filterBuilder);
-    }
-
-    [Fact]
-    public void AddSqlServerFilterBuilder_ShouldRegisterTypeConversionService()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-
-        // Act
-        services.AddSqlServerFilterBuilder();
-        var serviceProvider = services.BuildServiceProvider();
-
-        // Assert
         var typeConversionService = serviceProvider.GetService<ITypeConversionService>();
-        Assert.NotNull(typeConversionService);
-    }
-
-    [Fact]
-    public void AddSqlServerFilterBuilder_ShouldRegisterRuleTransformerService()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-
-        // Act
-        services.AddSqlServerFilterBuilder();
-        var serviceProvider = services.BuildServiceProvider();
-
-        // Assert
         var ruleTransformerService = serviceProvider.GetService<IRuleTransformerService>();
+
+        Assert.NotNull(filterBuilder);
+        Assert.NotNull(typeConversionService);
         Assert.NotNull(ruleTransformerService);
     }
 
@@ -93,7 +69,52 @@ public class SqlServerServiceCollectionExtensionsTests
     }
 
     [Fact]
+    public void AddSqlServerFilterBuilder_ShouldSupportCoreOperators()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddSqlServerFilterBuilder();
+        var serviceProvider = services.BuildServiceProvider();
+        var ruleTransformerService = serviceProvider.GetRequiredService<IRuleTransformerService>();
+
+        // Act & Assert - Core operators should be available
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("equal"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("not_equal"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("less"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("less_or_equal"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("greater"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("greater_or_equal"));
+    }
+
+    [Fact]
     public void AddSqlServerFilterBuilder_ShouldSupportSqlServerSpecificOperators()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddSqlServerFilterBuilder();
+        var serviceProvider = services.BuildServiceProvider();
+        var ruleTransformerService = serviceProvider.GetRequiredService<IRuleTransformerService>();
+
+        // Act & Assert - SQL Server specific operators should be available
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("between"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("not_between"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("in"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("not_in"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("contains"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("not_contains"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("begins_with"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("not_begins_with"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("ends_with"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("not_ends_with"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("is_null"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("is_not_null"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("is_empty"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("is_not_empty"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("date_diff"));
+    }
+
+    [Fact]
+    public void AddSqlServerFilterBuilder_ShouldGenerateCorrectSqlServerQueries()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -121,12 +142,13 @@ public class SqlServerServiceCollectionExtensionsTests
         var services = new ServiceCollection();
         var customConverterCalled = false;
 
-        // Act - Explicitly cast to avoid ambiguity
-        services.AddSqlServerFilterBuilder((Action<ITypeConversionService>)(typeConversion =>
-        {
-            customConverterCalled = true;
-            // Custom type conversion configuration
-        }));
+        // Act
+        services.AddSqlServerFilterBuilder(options => options
+            .ConfigureTypeConversion(typeConversion =>
+            {
+                customConverterCalled = true;
+                // Custom type conversion configuration
+            }));
         var serviceProvider = services.BuildServiceProvider();
 
         // Assert
@@ -141,44 +163,19 @@ public class SqlServerServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddSqlServerFilterBuilder_WithCustomTypeConversion_ShouldSupportSqlServerOperators()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddSqlServerFilterBuilder((Action<ITypeConversionService>)(typeConversion =>
-        {
-            // Custom type conversion configuration
-        }));
-        var serviceProvider = services.BuildServiceProvider();
-        var filterBuilder = serviceProvider.GetRequiredService<IFilterBuilder>();
-
-        var group = new FilterGroup("AND");
-        group.Rules.Add(new FilterRule("Name", "contains", "Test"));
-        group.Rules.Add(new FilterRule("Id", "between", new[] { 1, 10 }));
-
-        // Act
-        var (query, parameters) = filterBuilder.Build(group);
-
-        // Assert
-        Assert.Contains("LIKE '%'", query);     // SQL Server contains operator
-        Assert.Contains("BETWEEN", query);      // SQL Server between operator
-        Assert.Contains("[Name]", query);       // SQL Server field formatting
-        Assert.Contains("@p", query);           // SQL Server parameter formatting
-    }
-
-    [Fact]
     public void AddSqlServerFilterBuilder_WithCustomRuleTransformers_ShouldRegisterServices()
     {
         // Arrange
         var services = new ServiceCollection();
         var customTransformerCalled = false;
 
-        // Act - Explicitly cast to avoid ambiguity
-        services.AddSqlServerFilterBuilder((Action<IRuleTransformerService>)(ruleTransformers =>
-        {
-            customTransformerCalled = true;
-            // Custom rule transformer configuration
-        }));
+        // Act
+        services.AddSqlServerFilterBuilder(options => options
+            .ConfigureRuleTransformers(ruleTransformers =>
+            {
+                customTransformerCalled = true;
+                // Custom rule transformer configuration
+            }));
         var serviceProvider = services.BuildServiceProvider();
 
         // Assert
@@ -193,32 +190,6 @@ public class SqlServerServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddSqlServerFilterBuilder_WithCustomRuleTransformers_ShouldSupportSqlServerOperators()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddSqlServerFilterBuilder((Action<IRuleTransformerService>)(ruleTransformers =>
-        {
-            // Custom rule transformer configuration
-        }));
-        var serviceProvider = services.BuildServiceProvider();
-        var filterBuilder = serviceProvider.GetRequiredService<IFilterBuilder>();
-
-        var group = new FilterGroup("AND");
-        group.Rules.Add(new FilterRule("Status", "is_null", null));
-        group.Rules.Add(new FilterRule("Tags", "in", new[] { "tag1", "tag2" }));
-
-        // Act
-        var (query, parameters) = filterBuilder.Build(group);
-
-        // Assert
-        Assert.Contains("IS NULL", query);      // SQL Server is_null operator
-        Assert.Contains("IN (", query);         // SQL Server in operator
-        Assert.Contains("[Status]", query);     // SQL Server field formatting
-        Assert.Contains("[Tags]", query);       // SQL Server field formatting
-    }
-
-    [Fact]
     public void AddSqlServerFilterBuilder_WithBothCustomConfigurations_ShouldRegisterServices()
     {
         // Arrange
@@ -226,18 +197,18 @@ public class SqlServerServiceCollectionExtensionsTests
         var typeConversionCalled = false;
         var ruleTransformerCalled = false;
 
-        // Act - Use the 4-parameter overload to avoid ambiguity
-        services.AddSqlServerFilterBuilder(
-            typeConversion =>
+        // Act
+        services.AddSqlServerFilterBuilder(options => options
+            .ConfigureTypeConversion(typeConversion =>
             {
                 typeConversionCalled = true;
                 // Custom type conversion configuration
-            },
-            ruleTransformers =>
+            })
+            .ConfigureRuleTransformers(ruleTransformers =>
             {
                 ruleTransformerCalled = true;
                 // Custom rule transformer configuration
-            });
+            }));
         var serviceProvider = services.BuildServiceProvider();
 
         // Assert
@@ -253,36 +224,125 @@ public class SqlServerServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddSqlServerFilterBuilder_WithBothCustomConfigurations_ShouldSupportSqlServerOperators()
+    public void AddSqlServerFilterBuilder_WithMultipleCustomTypeConversions_ShouldRegisterAll()
     {
         // Arrange
         var services = new ServiceCollection();
-        services.AddSqlServerFilterBuilder(
-            typeConversion =>
+        var converter1Called = false;
+        var converter2Called = false;
+        var converter3Called = false;
+
+        // Act
+        services.AddSqlServerFilterBuilder(options => options
+            .ConfigureTypeConversion(typeConversion =>
             {
-                // Custom type conversion configuration
-            },
-            ruleTransformers =>
+                typeConversion.RegisterConverter("custom1", new TestTypeConverter(() => converter1Called = true));
+                typeConversion.RegisterConverter("custom2", new TestTypeConverter(() => converter2Called = true));
+                typeConversion.RegisterConverter("custom3", new TestTypeConverter(() => converter3Called = true));
+            }));
+        var serviceProvider = services.BuildServiceProvider();
+        var typeConversionService = serviceProvider.GetRequiredService<ITypeConversionService>();
+
+        // Assert - Test that converters work by calling ConvertValue
+        var result1 = typeConversionService.ConvertValue("test1", "custom1");
+        var result2 = typeConversionService.ConvertValue("test2", "custom2");
+        var result3 = typeConversionService.ConvertValue("test3", "custom3");
+
+        Assert.Equal("test1", result1);
+        Assert.Equal("test2", result2);
+        Assert.Equal("test3", result3);
+        Assert.True(converter1Called);
+        Assert.True(converter2Called);
+        Assert.True(converter3Called);
+    }
+
+    [Fact]
+    public void AddSqlServerFilterBuilder_WithMultipleCustomRuleTransformers_ShouldRegisterAll()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        // Act
+        services.AddSqlServerFilterBuilder(options => options
+            .ConfigureRuleTransformers(ruleTransformers =>
             {
-                // Custom rule transformer configuration
-            });
+                ruleTransformers.RegisterTransformer("custom_search", new TestRuleTransformer("CUSTOM_SEARCH"));
+                ruleTransformers.RegisterTransformer("fuzzy_match", new TestRuleTransformer("FUZZY_MATCH"));
+                ruleTransformers.RegisterTransformer("geo_distance", new TestRuleTransformer("GEO_DISTANCE"));
+            }));
+        var serviceProvider = services.BuildServiceProvider();
+        var ruleTransformerService = serviceProvider.GetRequiredService<IRuleTransformerService>();
+
+        // Assert
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("custom_search"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("fuzzy_match"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("geo_distance"));
+
+        // Should still have SQL Server transformers
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("contains"));
+        Assert.NotNull(ruleTransformerService.GetRuleTransformer("between"));
+    }
+
+    [Fact]
+    public void AddSqlServerFilterBuilder_WithComplexConfiguration_ShouldSupportAllFeatures()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddSqlServerFilterBuilder(options => options
+            .ConfigureTypeConversion(tc =>
+            {
+                tc.RegisterConverter("custom_date", new TestTypeConverter(() => { }));
+            })
+            .ConfigureRuleTransformers(rt =>
+            {
+                rt.RegisterTransformer("custom_op", new TestRuleTransformer("CUSTOM"));
+            }));
         var serviceProvider = services.BuildServiceProvider();
         var filterBuilder = serviceProvider.GetRequiredService<IFilterBuilder>();
 
         var group = new FilterGroup("AND");
-        group.Rules.Add(new FilterRule("Description", "contains", "test"));
-        group.Rules.Add(new FilterRule("CreatedDate", "date_diff", "days"));
-        group.Rules.Add(new FilterRule("IsActive", "is_not_null", null));
+        group.Rules.Add(new FilterRule("Name", "contains", "test"));
+        group.Rules.Add(new FilterRule("Id", "between", new[] { 1, 10 }));
 
         // Act
         var (query, parameters) = filterBuilder.Build(group);
 
         // Assert
-        Assert.Contains("LIKE '%'", query);         // SQL Server contains operator
-        Assert.Contains("DATEDIFF", query);         // SQL Server date_diff operator
-        Assert.Contains("IS NOT NULL", query);      // SQL Server is_not_null operator
-        Assert.Contains("[Description]", query);    // SQL Server field formatting
-        Assert.Contains("[CreatedDate]", query);    // SQL Server field formatting
-        Assert.Contains("[IsActive]", query);       // SQL Server field formatting
+        Assert.Contains("LIKE '%'", query);     // SQL Server contains operator
+        Assert.Contains("BETWEEN", query);      // SQL Server between operator
+        Assert.Contains("[Name]", query);       // SQL Server field formatting
+        Assert.Contains("@p", query);           // SQL Server parameter formatting
+    }
+
+    // Test helper classes
+    private class TestTypeConverter : ITypeConverter<object>
+    {
+        private readonly Action _onConvert;
+
+        public TestTypeConverter(Action onConvert)
+        {
+            _onConvert = onConvert;
+        }
+
+        public object Convert(object? value, Dictionary<string, object?>? metadata = null)
+        {
+            _onConvert();
+            return value ?? new object();
+        }
+    }
+
+    private class TestRuleTransformer : IRuleTransformer
+    {
+        private readonly string _operation;
+
+        public TestRuleTransformer(string operation)
+        {
+            _operation = operation;
+        }
+
+        public (string query, object[]? parameters) Transform(FilterRule rule, string fieldName, string parameterName)
+        {
+            return ($"{fieldName} {_operation} {parameterName}", rule.Value != null ? new[] { rule.Value } : null);
+        }
     }
 }

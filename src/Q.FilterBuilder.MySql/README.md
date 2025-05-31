@@ -97,17 +97,17 @@ services.AddMySqlFilterBuilder(typeConversion =>
 });
 
 // Example custom converter
-public class CurrencyConverter : ITypeConverter
+public class CurrencyConverter : ITypeConverter<decimal>
 {
-    public object? Convert(object? value, Dictionary<string, object?>? metadata = null)
+    public decimal Convert(object? value, Dictionary<string, object?>? metadata = null)
     {
-        if (value == null) return null;
-        
+        if (value == null) return 0;
+
         if (decimal.TryParse(value.ToString(), out var amount))
         {
             return Math.Round(amount, 2);
         }
-        
+
         throw new InvalidOperationException($"Cannot convert '{value}' to currency");
     }
 }

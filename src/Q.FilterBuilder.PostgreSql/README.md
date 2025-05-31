@@ -97,17 +97,17 @@ services.AddPostgreSqlFilterBuilder(typeConversion =>
 });
 
 // Example custom converter for UUID
-public class UuidConverter : ITypeConverter
+public class UuidConverter : ITypeConverter<Guid>
 {
-    public object? Convert(object? value, Dictionary<string, object?>? metadata = null)
+    public Guid Convert(object? value, Dictionary<string, object?>? metadata = null)
     {
-        if (value == null) return null;
-        
+        if (value == null) return Guid.Empty;
+
         if (Guid.TryParse(value.ToString(), out var guid))
         {
             return guid;
         }
-        
+
         throw new InvalidOperationException($"Cannot convert '{value}' to UUID");
     }
 }
