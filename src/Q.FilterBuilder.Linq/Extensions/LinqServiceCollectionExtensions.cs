@@ -27,176 +27,119 @@ public static class LinqServiceCollectionExtensions
             throw new ArgumentNullException(nameof(services));
         }
 
-        // Create LINQ provider and rule transformer service
-        var linqFormatProvider = new LinqFormatProvider();
-        var linqRuleTransformerService = new LinqRuleTransformerService();
-
-        // Register FilterBuilder with LINQ provider and rule transformer service
-        services.AddFilterBuilder(linqFormatProvider, linqRuleTransformerService);
-
-        return services;
+        return services.AddLinqFilterBuilder(null);
     }
 
     /// <summary>
     /// Adds the FilterBuilder service configured for LINQ to the dependency injection container
-    /// with custom type conversion configuration.
+    /// with custom configuration options.
     /// </summary>
     /// <param name="services">The service collection.</param>
-    /// <param name="configureTypeConversion">Action to configure custom type converters.</param>
+    /// <param name="configureOptions">Action to configure LINQ FilterBuilder options.</param>
     /// <returns>The service collection for chaining.</returns>
     /// <exception cref="ArgumentNullException">Thrown when services is null.</exception>
     public static IServiceCollection AddLinqFilterBuilder(
         this IServiceCollection services,
-        Action<ITypeConversionService> configureTypeConversion)
+        Action<LinqFilterBuilderOptions>? configureOptions = null)
     {
         if (services == null)
         {
             throw new ArgumentNullException(nameof(services));
         }
 
-        if (configureTypeConversion == null)
-        {
-            throw new ArgumentNullException(nameof(configureTypeConversion));
-        }
+        var options = new LinqFilterBuilderOptions();
+        configureOptions?.Invoke(options);
 
-        // Create LINQ provider and rule transformer service
-        var linqFormatProvider = new LinqFormatProvider();
-        var linqRuleTransformerService = new LinqRuleTransformerService();
-
-        // Register FilterBuilder with LINQ provider and custom type conversion
-        services.AddFilterBuilder(
-            linqFormatProvider,
-            configureTypeConversion,
+        return services.AddFilterBuilder(
+            new LinqFormatProvider(),
+            options.TypeConversionConfiguration,
             ruleTransformers =>
             {
-                // Copy all LINQ transformers to the new service
-                CopyTransformersFromService(linqRuleTransformerService, ruleTransformers);
-            });
+                // Core transformers (=, !=, <, <=, >, >=) are already registered
+                // by RuleTransformerService constructor
 
-        return services;
+                // Add LINQ-specific transformers
+                RegisterLinqTransformers(ruleTransformers);
+
+                // Apply any custom configuration
+                options.RuleTransformerConfiguration?.Invoke(ruleTransformers);
+            });
     }
 
     /// <summary>
-    /// Adds the FilterBuilder service configured for LINQ to the dependency injection container
-    /// with custom rule transformer configuration.
+    /// Registers LINQ specific rule transformers.
+    /// Note: Core transformers (=, !=, <, <=, >, >=) are already registered by the base RuleTransformerService.
     /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configureRuleTransformers">Action to configure custom rule transformers.</param>
-    /// <returns>The service collection for chaining.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when services is null.</exception>
-    public static IServiceCollection AddLinqFilterBuilder(
-        this IServiceCollection services,
-        Action<IRuleTransformerService> configureRuleTransformers)
+    /// <param name="service">The rule transformer service to register transformers with.</param>
+    private static void RegisterLinqTransformers(IRuleTransformerService service)
     {
-        if (services == null)
+        // Register range operators
+        service.RegisterTransformer("between", new BetweenRuleTransformer());
+        service.RegisterTransformer("not_between", new NotBetweenRuleTransformer());
+
+        // Register collection operators
+        service.RegisterTransformer("in", new InRuleTransformer());
+        service.RegisterTransformer("not_in", new NotInRuleTransformer());
+
+        // Register string operators
+        service.RegisterTransformer("contains", new ContainsRuleTransformer());
+        service.RegisterTransformer("contains_any", new ContainsRuleTransformer()); // Alias for contains
+        service.RegisterTransformer("not_contains", new NotContainsRuleTransformer());
+        service.RegisterTransformer("begins_with", new BeginsWithRuleTransformer());
+        service.RegisterTransformer("not_begins_with", new NotBeginsWithRuleTransformer());
+        service.RegisterTransformer("ends_with", new EndsWithRuleTransformer());
+        service.RegisterTransformer("not_ends_with", new NotEndsWithRuleTransformer());
+
+        // Register null check operators
+        service.RegisterTransformer("is_null", new IsNullRuleTransformer());
+        service.RegisterTransformer("is_not_null", new IsNotNullRuleTransformer());
+        service.RegisterTransformer("is_empty", new IsEmptyRuleTransformer());
+        service.RegisterTransformer("is_not_empty", new IsNotEmptyRuleTransformer());
+
+        // Register date operators
+        service.RegisterTransformer("date_diff", new DateDiffRuleTransformer());
+    }
+}
+
+/// <summary>
+/// Configuration options for LINQ FilterBuilder.
+/// </summary>
+public class LinqFilterBuilderOptions
+{
+    internal Action<ITypeConversionService>? TypeConversionConfiguration { get; private set; }
+    internal Action<IRuleTransformerService>? RuleTransformerConfiguration { get; private set; }
+
+    /// <summary>
+    /// Configures custom type converters for the LINQ FilterBuilder.
+    /// </summary>
+    /// <param name="configure">Action to configure type converters.</param>
+    /// <returns>The options instance for chaining.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when configure is null.</exception>
+    public LinqFilterBuilderOptions ConfigureTypeConversions(Action<ITypeConversionService> configure)
+    {
+        if (configure == null)
         {
-            throw new ArgumentNullException(nameof(services));
+            throw new ArgumentNullException(nameof(configure));
         }
 
-        if (configureRuleTransformers == null)
-        {
-            throw new ArgumentNullException(nameof(configureRuleTransformers));
-        }
-
-        // Create LINQ provider and rule transformer service
-        var linqFormatProvider = new LinqFormatProvider();
-        var linqRuleTransformerService = new LinqRuleTransformerService();
-
-        // Register FilterBuilder with LINQ provider and custom rule transformers
-        services.AddFilterBuilder(
-            linqFormatProvider,
-            null, // Use default type conversion
-            ruleTransformers =>
-            {
-                // First copy LINQ specific transformers
-                CopyTransformersFromService(linqRuleTransformerService, ruleTransformers);
-                // Then allow custom configuration
-                configureRuleTransformers(ruleTransformers);
-            });
-
-        return services;
+        TypeConversionConfiguration = configure;
+        return this;
     }
 
     /// <summary>
-    /// Adds the FilterBuilder service configured for LINQ to the dependency injection container
-    /// with custom type conversion and rule transformer configuration.
+    /// Configures custom rule transformers for the LINQ FilterBuilder.
     /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configureTypeConversion">Action to configure custom type converters.</param>
-    /// <param name="configureRuleTransformers">Action to configure custom rule transformers.</param>
-    /// <returns>The service collection for chaining.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when services is null.</exception>
-    public static IServiceCollection AddLinqFilterBuilder(
-        this IServiceCollection services,
-        Action<ITypeConversionService> configureTypeConversion,
-        Action<IRuleTransformerService> configureRuleTransformers)
+    /// <param name="configure">Action to configure rule transformers.</param>
+    /// <returns>The options instance for chaining.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when configure is null.</exception>
+    public LinqFilterBuilderOptions ConfigureRuleTransformers(Action<IRuleTransformerService> configure)
     {
-        if (services == null)
+        if (configure == null)
         {
-            throw new ArgumentNullException(nameof(services));
+            throw new ArgumentNullException(nameof(configure));
         }
 
-        if (configureTypeConversion == null)
-        {
-            throw new ArgumentNullException(nameof(configureTypeConversion));
-        }
-
-        if (configureRuleTransformers == null)
-        {
-            throw new ArgumentNullException(nameof(configureRuleTransformers));
-        }
-
-        // Create LINQ provider and rule transformer service
-        var linqFormatProvider = new LinqFormatProvider();
-        var linqRuleTransformerService = new LinqRuleTransformerService();
-
-        // Register FilterBuilder with LINQ provider and custom configuration
-        services.AddFilterBuilder(
-            linqFormatProvider,
-            configureTypeConversion,
-            ruleTransformers =>
-            {
-                // First copy LINQ specific transformers
-                CopyTransformersFromService(linqRuleTransformerService, ruleTransformers);
-                // Then allow custom configuration
-                configureRuleTransformers(ruleTransformers);
-            });
-
-        return services;
-    }
-
-
-
-    /// <summary>
-    /// Copies transformers from a source service to a target service.
-    /// This method attempts to get known LINQ transformers and register them in the target service.
-    /// </summary>
-    /// <param name="sourceService">The source service to copy transformers from.</param>
-    /// <param name="targetService">The target service to register transformers to.</param>
-    private static void CopyTransformersFromService(IRuleTransformerService sourceService, IRuleTransformerService targetService)
-    {
-        // List of known LINQ transformer operators
-        var linqOperators = new[]
-        {
-            "between", "not_between",
-            "in", "not_in",
-            "contains", "contains_any", "not_contains", "begins_with", "not_begins_with", "ends_with", "not_ends_with",
-            "is_null", "is_not_null", "is_empty", "is_not_empty"
-        };
-
-        // Copy each transformer from source to target
-        foreach (var operatorName in linqOperators)
-        {
-            try
-            {
-                var transformer = sourceService.GetRuleTransformer(operatorName);
-                targetService.RegisterTransformer(operatorName, transformer);
-            }
-            catch (NotImplementedException)
-            {
-                // Skip transformers that don't exist in the source service
-                // This provides resilience if the LinqRuleTransformerService changes
-            }
-        }
+        RuleTransformerConfiguration = configure;
+        return this;
     }
 }

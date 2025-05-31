@@ -187,8 +187,54 @@ The LINQ provider supports all basic operators plus LINQ-specific ones:
 | `not_between` | `field < @p0 \|\| field > @p1` | Value not between range |
 | `is_null` | `field == null` | Null check |
 | `is_not_null` | `field != null` | Not null check |
-| `is_empty` | `string.IsNullOrEmpty(field)` | Empty string check |
-| `is_not_empty` | `!string.IsNullOrEmpty(field)` | Non-empty string check |
+| `is_empty` | `field == string.Empty` | Empty string check |
+| `is_not_empty` | `field != string.Empty` | Non-empty string check |
+| `date_diff` | `(DateTime.Now - field).TotalDays == @p0` | Date difference in days (default) |
+| `date_diff` | `(DateTime.Now - field).TotalHours == @p0` | Date difference in hours |
+
+## Date Operations
+
+The `date_diff` operator supports various interval types through metadata:
+
+```csharp
+// Days (default)
+var rule = new FilterRule("CreatedDate", "date_diff", 30);
+// Result: (DateTime.Now - CreatedDate).TotalDays == @p0
+
+// Hours
+var rule = new FilterRule("LastActivity", "date_diff", 24);
+rule.Metadata = new Dictionary<string, object?> { { "intervalType", "hour" } };
+// Result: (DateTime.Now - LastActivity).TotalHours == @p0
+
+// Other supported intervals: year, month, day, hour, minute, second, millisecond
+```
+
+**Supported Interval Types:**
+- `year` - `(DateTime.Now.Year - field.Year) == @p0`
+- `month` - `((DateTime.Now.Year - field.Year) * 12 + DateTime.Now.Month - field.Month) == @p0`
+- `day` - `(DateTime.Now - field).TotalDays == @p0` (default)
+- `hour` - `(DateTime.Now - field).TotalHours == @p0`
+- `minute` - `(DateTime.Now - field).TotalMinutes == @p0`
+- `second` - `(DateTime.Now - field).TotalSeconds == @p0`
+- `millisecond` - `(DateTime.Now - field).TotalMilliseconds == @p0`
+
+## Fluent Configuration API
+
+The LINQ provider supports a modern fluent configuration API:
+
+```csharp
+services.AddLinqFilterBuilder(options => options
+    .ConfigureTypeConversions(typeConversion =>
+    {
+        typeConversion.RegisterConverter("guid", new GuidConverter());
+        typeConversion.RegisterConverter("enum", new EnumConverter());
+    })
+    .ConfigureRuleTransformers(ruleTransformers =>
+    {
+        ruleTransformers.RegisterTransformer("regex", new RegexTransformer());
+        ruleTransformers.RegisterTransformer("json_path", new JsonPathTransformer());
+    }));
+```
 
 ## LINQ-Specific Features
 

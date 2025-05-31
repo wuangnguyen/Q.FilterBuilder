@@ -43,5 +43,8 @@ public class LinqRuleTransformerService : RuleTransformerService
         RegisterTransformer("is_not_null", new IsNotNullRuleTransformer());
         RegisterTransformer("is_empty", new IsEmptyRuleTransformer());
         RegisterTransformer("is_not_empty", new IsNotEmptyRuleTransformer());
+
+        // Register date operators
+        RegisterTransformer("date_diff", new DateDiffRuleTransformer());
     }
 }
