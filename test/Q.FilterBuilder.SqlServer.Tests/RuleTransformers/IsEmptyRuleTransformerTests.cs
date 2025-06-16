@@ -1,4 +1,5 @@
 using Q.FilterBuilder.Core.Models;
+
 using Q.FilterBuilder.SqlServer.RuleTransformers;
 using Xunit;
 
@@ -15,7 +16,7 @@ public class IsEmptyRuleTransformerTests
         var rule = new FilterRule("Name", "is_empty", "any_value");
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "Name", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "Name", 0, new SqlServerFormatProvider());
 
         // Assert
         Assert.Equal("Name = ''", query);
@@ -29,7 +30,7 @@ public class IsEmptyRuleTransformerTests
         var rule = new FilterRule("Name", "is_empty", null);
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "Name", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "Name", 0, new SqlServerFormatProvider());
 
         // Assert
         Assert.Equal("Name = ''", query);
@@ -43,7 +44,7 @@ public class IsEmptyRuleTransformerTests
         var rule = new FilterRule("User.Profile.Name", "is_empty", null);
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "[User].[Profile].[Name]", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "[User].[Profile].[Name]", 0, new SqlServerFormatProvider());
 
         // Assert
         Assert.Equal("[User].[Profile].[Name] = ''", query);

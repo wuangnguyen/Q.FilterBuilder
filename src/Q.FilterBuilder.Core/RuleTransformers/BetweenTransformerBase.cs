@@ -65,16 +65,23 @@ public abstract class BetweenTransformerBase : BaseRuleTransformer
     }
 
     /// <inheritdoc />
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
-        return BuildBetweenQuery(fieldName, parameterName);
+        var param1 = context.FormatProvider!.FormatParameterName(context.ParameterIndex);
+        var param2 = context.FormatProvider!.FormatParameterName(context.ParameterIndex + 1);
+        return BuildBetweenQuery(fieldName, param1, param2);
     }
 
     /// <summary>
-    /// Builds the BETWEEN query string.
+    /// Builds the BETWEEN query string with specific parameter names.
     /// </summary>
     /// <param name="fieldName">The field name.</param>
-    /// <param name="parameterName">The base parameter name.</param>
+    /// <param name="param1">The first parameter name.</param>
+    /// <param name="param2">The second parameter name.</param>
     /// <returns>The BETWEEN query string.</returns>
-    protected abstract string BuildBetweenQuery(string fieldName, string parameterName);
+    protected virtual string BuildBetweenQuery(string fieldName, string param1, string param2)
+    {
+        // Default implementation - can be overridden by providers
+        return $"{fieldName} BETWEEN {param1} AND {param2}";
+    }
 }

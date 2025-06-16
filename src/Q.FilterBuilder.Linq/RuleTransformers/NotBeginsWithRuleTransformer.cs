@@ -43,16 +43,20 @@ public class NotBeginsWithRuleTransformer : BaseRuleTransformer
     }
 
     /// <inheritdoc />
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
         if (context.Parameters == null || context.Parameters.Length == 0)
         {
             throw new InvalidOperationException("NOT_BEGINS_WITH operator requires parameters");
         }
 
-        // Generate NOT StartsWith conditions for each parameter
+        // Generate NOT StartsWith conditions for each parameter using sequential parameter indices
         var notStartsWithConditions = context.Parameters
-            .Select((_, index) => $"!{fieldName}.StartsWith(@{parameterName}{index})")
+            .Select((_, index) =>
+            {
+                var paramName = context.FormatProvider!.FormatParameterName(context.ParameterIndex + index);
+                return $"!{fieldName}.StartsWith({paramName})";
+            })
             .ToArray();
 
         // If multiple conditions, wrap in parentheses and join with AND

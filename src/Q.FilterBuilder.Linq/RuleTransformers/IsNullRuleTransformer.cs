@@ -17,7 +17,7 @@ public class IsNullRuleTransformer : BaseRuleTransformer
     }
 
     /// <inheritdoc />
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
         return $"{fieldName} == null";
     }

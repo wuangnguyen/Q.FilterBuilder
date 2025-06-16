@@ -23,7 +23,7 @@ public class NotInRuleTransformer : InTransformerBase
     }
 
     /// <inheritdoc />
-    protected override string[] GenerateParameterPlaceholders(string parameterName, int count)
+    protected override string[] GenerateParameterPlaceholders(string parameterName, int count, TransformContext context)
     {
         // MySQL uses positional parameters - all parameters are just "?"
         return Enumerable.Repeat("?", count).ToArray();

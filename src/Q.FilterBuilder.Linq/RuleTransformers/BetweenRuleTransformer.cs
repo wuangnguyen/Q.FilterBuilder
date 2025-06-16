@@ -54,8 +54,11 @@ public class BetweenRuleTransformer : BaseRuleTransformer
     }
 
     /// <inheritdoc />
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
-        return $"{fieldName} >= {parameterName}0 && {fieldName} <= {parameterName}1";
+        // LINQ BETWEEN: field >= param1 && field <= param2
+        var param1 = context.FormatProvider!.FormatParameterName(context.ParameterIndex);
+        var param2 = context.FormatProvider!.FormatParameterName(context.ParameterIndex + 1);
+        return $"{fieldName} >= {param1} && {fieldName} <= {param2}";
     }
 }

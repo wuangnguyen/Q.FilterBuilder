@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Q.FilterBuilder.Core.Models;
+using Q.FilterBuilder.Core.Providers;
 
 namespace Q.FilterBuilder.Core.RuleTransformers;
 
@@ -16,10 +17,12 @@ public abstract class BaseRuleTransformer : IRuleTransformer
     {
         public object[]? Parameters { get; set; }
         public Dictionary<string, object?>? Metadata { get; set; }
+        public int ParameterIndex { get; set; }
+        public IQueryFormatProvider? FormatProvider { get; set; }
     }
 
     /// <inheritdoc />
-    public virtual (string query, object[]? parameters) Transform(FilterRule rule, string fieldName, string parameterName)
+    public virtual (string query, object[]? parameters) Transform(FilterRule rule, string fieldName, int parameterIndex, IQueryFormatProvider formatProvider)
     {
         rule.Metadata ??= new Dictionary<string, object?>();
         if (!rule.Metadata.ContainsKey("type"))
@@ -29,14 +32,16 @@ public abstract class BaseRuleTransformer : IRuleTransformer
 
         var context = new TransformContext
         {
-            Metadata = rule.Metadata
+            Metadata = rule.Metadata,
+            ParameterIndex = parameterIndex,
+            FormatProvider = formatProvider
         };
 
         // Step 1: Build parameters from rule value and metadata
         context.Parameters = BuildParameters(rule.Value, rule.Metadata);
 
-        // Step 2: Build query using field name and parameter name
-        var query = BuildQuery(fieldName, parameterName, context);
+        // Step 2: Build query using field name and context
+        var query = BuildQuery(fieldName, context);
 
         return (query, context.Parameters);
     }
@@ -60,12 +65,11 @@ public abstract class BaseRuleTransformer : IRuleTransformer
     }
 
     /// <summary>
-    /// Builds the query string using the field name, parameter name, and transformation context.
+    /// Builds the query string using the field name and transformation context.
     /// This method must be implemented by concrete rule transformers.
     /// </summary>
     /// <param name="fieldName">The formatted field name.</param>
-    /// <param name="parameterName">The formatted parameter name.</param>
-    /// <param name="context">The transformation context containing parameters and metadata.</param>
+    /// <param name="context">The transformation context containing parameters, metadata, parameter index, and format provider.</param>
     /// <returns>The query string for this rule.</returns>
-    protected abstract string BuildQuery(string fieldName, string parameterName, TransformContext context);
+    protected abstract string BuildQuery(string fieldName, TransformContext context);
 }

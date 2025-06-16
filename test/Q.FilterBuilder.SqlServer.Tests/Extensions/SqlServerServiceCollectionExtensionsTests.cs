@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Q.FilterBuilder.Core;
 using Q.FilterBuilder.Core.Models;
+
 using Q.FilterBuilder.Core.TypeConversion;
 using Q.FilterBuilder.Core.RuleTransformers;
 using Q.FilterBuilder.Core.Providers;
@@ -64,7 +65,7 @@ public class SqlServerServiceCollectionExtensionsTests
         // Assert
         Assert.Contains("[Name]", query); // SQL Server field formatting
         Assert.Contains("[Age]", query);  // SQL Server field formatting
-        Assert.Contains("@p", query);     // SQL Server parameter formatting
+        Assert.Contains("@p0", query);     // SQL Server parameter formatting
         Assert.Equal(2, parameters.Length);
         Assert.Equal("John", parameters[0]);
         Assert.Equal(18, parameters[1]);
@@ -313,7 +314,7 @@ public class SqlServerServiceCollectionExtensionsTests
         Assert.Contains("LIKE '%'", query);     // SQL Server contains operator
         Assert.Contains("BETWEEN", query);      // SQL Server between operator
         Assert.Contains("[Name]", query);       // SQL Server field formatting
-        Assert.Contains("@p", query);           // SQL Server parameter formatting
+        Assert.Contains("@p0", query);           // SQL Server parameter formatting
     }
 
     [Fact]
@@ -470,8 +471,9 @@ public class SqlServerServiceCollectionExtensionsTests
             _operation = operation;
         }
 
-        public (string query, object[]? parameters) Transform(FilterRule rule, string fieldName, string parameterName)
+        public (string query, object[]? parameters) Transform(FilterRule rule, string fieldName, int parameterIndex, IQueryFormatProvider formatProvider)
         {
+            var parameterName = formatProvider.FormatParameterName(parameterIndex);
             return ($"{fieldName} {_operation} {parameterName}", rule.Value != null ? new[] { rule.Value } : null);
         }
     }

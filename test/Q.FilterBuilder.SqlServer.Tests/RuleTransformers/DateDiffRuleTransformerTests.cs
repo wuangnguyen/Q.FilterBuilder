@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Q.FilterBuilder.Core.Models;
+
 using Q.FilterBuilder.SqlServer.RuleTransformers;
 using Xunit;
 
@@ -17,10 +18,10 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("CreatedDate", "date_diff", 30);
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(day, CreatedDate, GETDATE()) = @param", query);
+        Assert.Equal("DATEDIFF(day, CreatedDate, GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(30, parameters[0]);
@@ -36,10 +37,10 @@ public class DateDiffRuleTransformerTests
         };
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(month, CreatedDate, GETDATE()) = @param", query);
+        Assert.Equal("DATEDIFF(month, CreatedDate, GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(6, parameters[0]);
@@ -55,10 +56,10 @@ public class DateDiffRuleTransformerTests
         };
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "BirthDate", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "BirthDate", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(year, BirthDate, GETDATE()) = @param", query);
+        Assert.Equal("DATEDIFF(year, BirthDate, GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(25, parameters[0]);
@@ -74,10 +75,10 @@ public class DateDiffRuleTransformerTests
         };
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "LastLoginDate", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "LastLoginDate", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(hour, LastLoginDate, GETDATE()) = @param", query);
+        Assert.Equal("DATEDIFF(hour, LastLoginDate, GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(24, parameters[0]);
@@ -93,10 +94,10 @@ public class DateDiffRuleTransformerTests
         };
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(week, CreatedDate, GETDATE()) = @param", query);
+        Assert.Equal("DATEDIFF(week, CreatedDate, GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(2, parameters[0]);
@@ -112,10 +113,10 @@ public class DateDiffRuleTransformerTests
         };
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "LastActivity", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "LastActivity", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(minute, LastActivity, GETDATE()) = @param", query);
+        Assert.Equal("DATEDIFF(minute, LastActivity, GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(30, parameters[0]);
@@ -131,10 +132,10 @@ public class DateDiffRuleTransformerTests
         };
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "Timestamp", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "Timestamp", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(second, Timestamp, GETDATE()) = @param", query);
+        Assert.Equal("DATEDIFF(second, Timestamp, GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(45, parameters[0]);
@@ -150,10 +151,10 @@ public class DateDiffRuleTransformerTests
         };
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "ReportDate", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "ReportDate", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(quarter, ReportDate, GETDATE()) = @param", query);
+        Assert.Equal("DATEDIFF(quarter, ReportDate, GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(1, parameters[0]);
@@ -169,7 +170,7 @@ public class DateDiffRuleTransformerTests
         };
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, "CreatedDate", "@param"));
+        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, "CreatedDate", 0, new SqlServerFormatProvider()));
         Assert.Contains("Invalid interval type 'invalid_interval'", exception.Message);
     }
 
@@ -180,7 +181,7 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("CreatedDate", "date_diff", null);
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => _transformer.Transform(rule, "CreatedDate", "@param"));
+        var exception = Assert.Throws<ArgumentNullException>(() => _transformer.Transform(rule, "CreatedDate", 0, new SqlServerFormatProvider()));
         Assert.Contains("DATE_DIFF operator requires a non-null value", exception.Message);
     }
 
@@ -194,10 +195,10 @@ public class DateDiffRuleTransformerTests
         };
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(week, CreatedDate, GETDATE()) = @param", query);
+        Assert.Equal("DATEDIFF(week, CreatedDate, GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(7, parameters[0]);
@@ -217,10 +218,10 @@ public class DateDiffRuleTransformerTests
             };
 
             // Act
-            var (query, parameters) = _transformer.Transform(rule, "TestDate", "@param");
+            var (query, parameters) = _transformer.Transform(rule, "TestDate", 0, new SqlServerFormatProvider());
 
             // Assert
-            Assert.Equal($"DATEDIFF({interval}, TestDate, GETDATE()) = @param", query);
+            Assert.Equal($"DATEDIFF({interval}, TestDate, GETDATE()) = @p0", query);
             Assert.NotNull(parameters);
             Assert.Single(parameters);
             Assert.Equal(1, parameters[0]);
@@ -234,10 +235,10 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("FutureDate", "date_diff", -30);
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "FutureDate", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "FutureDate", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(day, FutureDate, GETDATE()) = @param", query);
+        Assert.Equal("DATEDIFF(day, FutureDate, GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(-30, parameters[0]);
@@ -250,10 +251,10 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("TodayDate", "date_diff", 0);
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "TodayDate", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "TodayDate", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(day, TodayDate, GETDATE()) = @param", query);
+        Assert.Equal("DATEDIFF(day, TodayDate, GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(0, parameters[0]);
@@ -266,10 +267,10 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("User.Profile.CreatedDate", "date_diff", 30);
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "[User].[Profile].[CreatedDate]", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "[User].[Profile].[CreatedDate]", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(day, [User].[Profile].[CreatedDate], GETDATE()) = @param", query);
+        Assert.Equal("DATEDIFF(day, [User].[Profile].[CreatedDate], GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(30, parameters[0]);
@@ -282,10 +283,10 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("CreatedDate", "date_diff", 15);
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", "@customParam");
+        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(day, CreatedDate, GETDATE()) = @customParam", query);
+        Assert.Equal("DATEDIFF(day, CreatedDate, GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(15, parameters[0]);
@@ -298,10 +299,10 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("CreatedDate", "date_diff", 10);
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(day, CreatedDate, GETDATE()) = @param", query);
+        Assert.Equal("DATEDIFF(day, CreatedDate, GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(10, parameters[0]);
@@ -317,10 +318,10 @@ public class DateDiffRuleTransformerTests
         };
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(day, CreatedDate, GETDATE()) = @param", query);
+        Assert.Equal("DATEDIFF(day, CreatedDate, GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(5, parameters[0]);
@@ -336,10 +337,10 @@ public class DateDiffRuleTransformerTests
         };
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(day, CreatedDate, GETDATE()) = @param", query);
+        Assert.Equal("DATEDIFF(day, CreatedDate, GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(12, parameters[0]);
@@ -355,7 +356,7 @@ public class DateDiffRuleTransformerTests
         };
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, "CreatedDate", "@param"));
+        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, "CreatedDate", 0, new SqlServerFormatProvider()));
         Assert.Contains("Invalid interval type ''", exception.Message);
     }
 
@@ -369,7 +370,7 @@ public class DateDiffRuleTransformerTests
         };
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, "CreatedDate", "@param"));
+        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, "CreatedDate", 0, new SqlServerFormatProvider()));
         Assert.Contains("Invalid interval type '   '", exception.Message);
     }
 
@@ -383,10 +384,10 @@ public class DateDiffRuleTransformerTests
         };
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(month, CreatedDate, GETDATE()) = @param", query);
+        Assert.Equal("DATEDIFF(month, CreatedDate, GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(7, parameters[0]);
@@ -402,7 +403,7 @@ public class DateDiffRuleTransformerTests
         };
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, "CreatedDate", "@param"));
+        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, "CreatedDate", 0, new SqlServerFormatProvider()));
         Assert.Contains("Invalid interval type '123'", exception.Message);
     }
 
@@ -416,10 +417,10 @@ public class DateDiffRuleTransformerTests
         };
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(dayofyear, CreatedDate, GETDATE()) = @param", query);
+        Assert.Equal("DATEDIFF(dayofyear, CreatedDate, GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(100, parameters[0]);
@@ -435,10 +436,10 @@ public class DateDiffRuleTransformerTests
         };
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "Timestamp", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "Timestamp", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(millisecond, Timestamp, GETDATE()) = @param", query);
+        Assert.Equal("DATEDIFF(millisecond, Timestamp, GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(5000, parameters[0]);
@@ -454,10 +455,10 @@ public class DateDiffRuleTransformerTests
         };
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "Timestamp", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "Timestamp", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(microsecond, Timestamp, GETDATE()) = @param", query);
+        Assert.Equal("DATEDIFF(microsecond, Timestamp, GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(1000000, parameters[0]);
@@ -473,10 +474,10 @@ public class DateDiffRuleTransformerTests
         };
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "Timestamp", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "Timestamp", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(nanosecond, Timestamp, GETDATE()) = @param", query);
+        Assert.Equal("DATEDIFF(nanosecond, Timestamp, GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(1000000000, parameters[0]);
@@ -496,10 +497,10 @@ public class DateDiffRuleTransformerTests
         };
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(year, CreatedDate, GETDATE()) = @param", query);
+        Assert.Equal("DATEDIFF(year, CreatedDate, GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(2, parameters[0]);
@@ -532,7 +533,7 @@ public class DateDiffRuleTransformerTests
         };
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, "CreatedDate", "@param"));
+        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, "CreatedDate", 0, new SqlServerFormatProvider()));
         Assert.Contains($"Invalid interval type '{invalidInterval}'", exception.Message);
         Assert.Contains("Valid types are:", exception.Message);
     }
@@ -544,10 +545,10 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("CreatedDate", "date_diff", "30");
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(day, CreatedDate, GETDATE()) = @param", query);
+        Assert.Equal("DATEDIFF(day, CreatedDate, GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal("30", parameters[0]);
@@ -560,10 +561,10 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("CreatedDate", "date_diff", 30.5);
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("DATEDIFF(day, CreatedDate, GETDATE()) = @param", query);
+        Assert.Equal("DATEDIFF(day, CreatedDate, GETDATE()) = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(30.5, parameters[0]);

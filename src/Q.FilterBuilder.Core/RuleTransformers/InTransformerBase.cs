@@ -52,17 +52,19 @@ public abstract class InTransformerBase : BaseRuleTransformer
     }
 
     /// <inheritdoc />
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
         if (context.Parameters == null || context.Parameters.Length == 0)
         {
             throw new InvalidOperationException($"{_operatorName} operator requires parameters");
         }
 
-        // Generate parameter placeholders
-        var parameterPlaceholders = GenerateParameterPlaceholders(parameterName, context.Parameters.Length);
+        // Generate parameter placeholders using sequential indices
+        var parameterPlaceholders = Enumerable.Range(context.ParameterIndex, context.Parameters.Length)
+            .Select(index => context.FormatProvider!.FormatParameterName(index))
+            .ToArray();
         var parameterList = string.Join(", ", parameterPlaceholders);
-        
+
         return BuildInQuery(fieldName, parameterList);
     }
 
@@ -71,9 +73,19 @@ public abstract class InTransformerBase : BaseRuleTransformer
     /// </summary>
     /// <param name="parameterName">The base parameter name.</param>
     /// <param name="count">The number of parameters.</param>
+    /// <param name="context">The transformation context containing parameter index and format provider.</param>
     /// <returns>An array of parameter placeholder strings.</returns>
-    protected virtual string[] GenerateParameterPlaceholders(string parameterName, int count)
+    protected virtual string[] GenerateParameterPlaceholders(string parameterName, int count, TransformContext context)
     {
+        // Use the format provider and parameter index from context if available
+        if (context.FormatProvider != null)
+        {
+            return Enumerable.Range(context.ParameterIndex, count)
+                .Select(index => context.FormatProvider.FormatParameterName(index))
+                .ToArray();
+        }
+
+        // Fallback to old behavior for backward compatibility
         // Check if parameterName is in the format "@0", "@1", etc. (used by NOT IN)
         if (parameterName.StartsWith("@") && int.TryParse(parameterName.TrimStart('@'), out var baseIndex))
         {

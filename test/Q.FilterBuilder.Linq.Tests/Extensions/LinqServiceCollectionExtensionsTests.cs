@@ -2,6 +2,7 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using Q.FilterBuilder.Core;
 using Q.FilterBuilder.Core.Models;
+
 using Q.FilterBuilder.Core.Providers;
 using Q.FilterBuilder.Core.TypeConversion;
 using Q.FilterBuilder.Core.RuleTransformers;
@@ -334,7 +335,7 @@ public class LinqServiceCollectionExtensionsTests
 
         // Assert
         Assert.Contains("Name = @p0", query);
-        Assert.Contains("Age >= @p10 && Age <= @p11", query);
+        Assert.Contains("Age >= @p1 && Age <= @p2", query);
         Assert.Equal(3, parameters.Length);
         Assert.Equal("John", parameters[0]);
         Assert.Equal(18, parameters[1]);

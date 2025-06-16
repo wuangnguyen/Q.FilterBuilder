@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Q.FilterBuilder.Core.Models;
+
 using Q.FilterBuilder.MySql.RuleTransformers;
 using Xunit;
 
@@ -21,10 +22,8 @@ public class DateDiffRuleTransformerTests
         // Arrange
         var rule = new FilterRule("CreatedDate", "date_diff", 30);
         var fieldName = "`CreatedDate`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("DATEDIFF(NOW(), `CreatedDate`) = ?", query);
@@ -40,10 +39,8 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("LastLogin", "date_diff", 7);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "day" } };
         var fieldName = "`LastLogin`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("DATEDIFF(NOW(), `LastLogin`) = ?", query);
@@ -59,10 +56,8 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("LastActivity", "date_diff", 24);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "hour" } };
         var fieldName = "`LastActivity`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("TIMESTAMPDIFF(HOUR, `LastActivity`, NOW()) = ?", query);
@@ -78,10 +73,8 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("BirthDate", "date_diff", 6);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "month" } };
         var fieldName = "`BirthDate`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("TIMESTAMPDIFF(MONTH, `BirthDate`, NOW()) = ?", query);
@@ -97,10 +90,8 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("StartDate", "date_diff", 2);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "year" } };
         var fieldName = "`StartDate`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("TIMESTAMPDIFF(YEAR, `StartDate`, NOW()) = ?", query);
@@ -116,10 +107,8 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("Timestamp", "date_diff", 30);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "minute" } };
         var fieldName = "`Timestamp`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("TIMESTAMPDIFF(MINUTE, `Timestamp`, NOW()) = ?", query);
@@ -135,10 +124,8 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("EventTime", "date_diff", 45);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "second" } };
         var fieldName = "`EventTime`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("TIMESTAMPDIFF(SECOND, `EventTime`, NOW()) = ?", query);
@@ -154,10 +141,8 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("CreatedDate", "date_diff", 30);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "invalid" } };
         var fieldName = "`CreatedDate`";
-        var parameterName = "?";
-
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, fieldName, parameterName));
+        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider()));
         Assert.Contains("Invalid interval type 'invalid'", exception.Message);
         Assert.Contains("Valid types are: year, month, day, hour, minute, second", exception.Message);
     }
@@ -168,10 +153,8 @@ public class DateDiffRuleTransformerTests
         // Arrange
         var rule = new FilterRule("CreatedDate", "date_diff", null);
         var fieldName = "`CreatedDate`";
-        var parameterName = "?";
-
         // Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => _transformer.Transform(rule, fieldName, parameterName));
+        var exception = Assert.Throws<ArgumentNullException>(() => _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider()));
         Assert.Contains("DATE_DIFF operator requires a non-null value", exception.Message);
     }
 
@@ -182,10 +165,8 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("UpdatedDate", "date_diff", 15);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "HOUR" } };
         var fieldName = "`UpdatedDate`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("TIMESTAMPDIFF(HOUR, `UpdatedDate`, NOW()) = ?", query);

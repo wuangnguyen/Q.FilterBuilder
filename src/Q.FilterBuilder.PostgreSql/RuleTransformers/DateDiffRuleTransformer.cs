@@ -23,7 +23,7 @@ public class DateDiffRuleTransformer : BaseRuleTransformer
     }
 
     /// <inheritdoc />
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
         // Get interval type from metadata, default to "day"
         var intervalType = "day";
@@ -53,6 +53,7 @@ public class DateDiffRuleTransformer : BaseRuleTransformer
         // PostgreSQL uses EXTRACT function for date differences
         // EXTRACT(day FROM NOW() - field) for day differences
         // EXTRACT(hour FROM NOW() - field) for hour differences, etc.
-        return $"EXTRACT({intervalType.ToLowerInvariant()} FROM NOW() - {fieldName}) = {parameterName}";
+        var paramName = context.FormatProvider!.FormatParameterName(context.ParameterIndex);
+        return $"EXTRACT({intervalType.ToLowerInvariant()} FROM NOW() - {fieldName}) = {paramName}";
     }
 }

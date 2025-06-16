@@ -1,4 +1,5 @@
 using Q.FilterBuilder.Core.Models;
+
 using Q.FilterBuilder.MySql.RuleTransformers;
 using Xunit;
 
@@ -19,10 +20,8 @@ public class IsNullRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Description", "is_null", null);
         var fieldName = "`Description`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`Description` IS NULL", query);
@@ -35,10 +34,8 @@ public class IsNullRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Notes", "is_null", "some value");
         var fieldName = "`Notes`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`Notes` IS NULL", query);
@@ -51,10 +48,8 @@ public class IsNullRuleTransformerTests
         // Arrange
         var rule = new FilterRule("OptionalField", "is_null", null);
         var fieldName = "`OptionalField`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`OptionalField` IS NULL", query);
@@ -67,10 +62,8 @@ public class IsNullRuleTransformerTests
         // Arrange
         var rule = new FilterRule("User.Profile.Avatar", "is_null", null);
         var fieldName = "`User`.`Profile`.`Avatar`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`User`.`Profile`.`Avatar` IS NULL", query);

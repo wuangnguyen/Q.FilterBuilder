@@ -1,6 +1,7 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using Q.FilterBuilder.Core.Models;
+
 using Q.FilterBuilder.Core;
 using Q.FilterBuilder.SqlServer.Extensions;
 using Xunit;
@@ -151,7 +152,7 @@ public class SqlServerEdgeCaseTests
         var (query, parameters) = filterBuilder.Build(group);
 
         // Assert
-        Assert.Equal("[Status] IN (@p00)", query);
+        Assert.Equal("[Status] IN (@p0)", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal("Active", parameters[0]);
@@ -173,7 +174,7 @@ public class SqlServerEdgeCaseTests
         var (query, parameters) = filterBuilder.Build(group);
 
         // Assert
-        Assert.Equal("[MixedField] IN (@p00, @p01, @p02, @p03)", query);
+        Assert.Equal("[MixedField] IN (@p0, @p1, @p2, @p3)", query);
         Assert.NotNull(parameters);
         Assert.Equal(4, parameters.Length);
         Assert.Equal("String", parameters[0]);
@@ -249,7 +250,7 @@ public class SqlServerEdgeCaseTests
         for (int i = 0; i < 100; i++)
         {
             currentGroup.Rules.Add(new FilterRule($"Field{i}", "equal", $"Value{i}"));
-            
+
             if (i < 99) // Don't add nested group to the last iteration
             {
                 var nestedGroup = new FilterGroup("OR");
@@ -260,7 +261,7 @@ public class SqlServerEdgeCaseTests
 
         // Act & Assert - Should not throw StackOverflowException
         var (query, parameters) = filterBuilder.Build(rootGroup);
-        
+
         Assert.NotNull(query);
         Assert.NotNull(parameters);
         Assert.Equal(100, parameters.Length);

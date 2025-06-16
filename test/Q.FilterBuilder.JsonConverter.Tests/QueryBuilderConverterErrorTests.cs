@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using Q.FilterBuilder.Core.Models;
+
 using Xunit;
 
 namespace Q.FilterBuilder.JsonConverter.Tests;
@@ -90,31 +91,6 @@ public class QueryBuilderConverterErrorTests
                 {
                     "field": "Name",
                     "value": "Test",
-                    "type": "string"
-                }
-            ]
-        }
-        """;
-
-        // Act & Assert
-        Assert.Throws<KeyNotFoundException>(() =>
-            JsonSerializer.Deserialize<FilterGroup>(json, options));
-    }
-
-    [Fact]
-    public void Read_MissingValueProperty_ShouldThrowJsonException()
-    {
-        // Arrange
-        var converter = new QueryBuilderConverter();
-        var options = new JsonSerializerOptions { Converters = { converter } };
-
-        var json = """
-        {
-            "condition": "AND",
-            "rules": [
-                {
-                    "field": "Name",
-                    "operator": "equal",
                     "type": "string"
                 }
             ]

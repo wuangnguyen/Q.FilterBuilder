@@ -44,8 +44,9 @@ public class BasicRuleTransformer : BaseRuleTransformer
     }
 
     /// <inheritdoc />
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
+        var parameterName = context.FormatProvider!.FormatParameterName(context.ParameterIndex);
         return $"{fieldName} {_operator} {parameterName}";
     }
 }

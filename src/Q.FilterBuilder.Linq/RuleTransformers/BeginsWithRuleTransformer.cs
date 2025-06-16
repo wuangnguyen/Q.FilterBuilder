@@ -43,16 +43,20 @@ public class BeginsWithRuleTransformer : BaseRuleTransformer
     }
 
     /// <inheritdoc />
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
         if (context.Parameters == null || context.Parameters.Length == 0)
         {
             throw new InvalidOperationException("BEGINS_WITH operator requires parameters");
         }
 
-        // Generate StartsWith conditions for each parameter
+        // Generate StartsWith conditions for each parameter using sequential parameter indices
         var startsWithConditions = context.Parameters
-            .Select((_, index) => $"{fieldName}.StartsWith(@{parameterName}{index})")
+            .Select((_, index) =>
+            {
+                var paramName = context.FormatProvider!.FormatParameterName(context.ParameterIndex + index);
+                return $"{fieldName}.StartsWith({paramName})";
+            })
             .ToArray();
 
         // If multiple conditions, wrap in parentheses and join with OR

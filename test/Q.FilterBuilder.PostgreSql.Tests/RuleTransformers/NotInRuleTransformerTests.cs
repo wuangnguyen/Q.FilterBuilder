@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Q.FilterBuilder.Core.Models;
+
 using Q.FilterBuilder.PostgreSql.RuleTransformers;
 using Xunit;
 
@@ -21,13 +22,11 @@ public class NotInRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Status", "not_in", "Inactive");
         var fieldName = "\"Status\"";
-        var parameterName = "$1";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new PostgreSqlFormatProvider());
 
         // Assert
-        Assert.Equal("\"Status\" NOT IN ($10)", query);
+        Assert.Equal("\"Status\" NOT IN ($1)", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal("Inactive", parameters[0]);
@@ -39,13 +38,11 @@ public class NotInRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Status", "not_in", new[] { "Inactive", "Deleted", "Archived" });
         var fieldName = "\"Status\"";
-        var parameterName = "$3";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new PostgreSqlFormatProvider());
 
         // Assert
-        Assert.Equal("\"Status\" NOT IN ($30, $31, $32)", query);
+        Assert.Equal("\"Status\" NOT IN ($1, $2, $3)", query);
         Assert.NotNull(parameters);
         Assert.Equal(3, parameters.Length);
         Assert.Equal("Inactive", parameters[0]);
@@ -59,13 +56,11 @@ public class NotInRuleTransformerTests
         // Arrange
         var rule = new FilterRule("CategoryId", "not_in", new[] { 4, 6, 7 });
         var fieldName = "\"CategoryId\"";
-        var parameterName = "$2";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new PostgreSqlFormatProvider());
 
         // Assert
-        Assert.Equal("\"CategoryId\" NOT IN ($20, $21, $22)", query);
+        Assert.Equal("\"CategoryId\" NOT IN ($1, $2, $3)", query);
         Assert.NotNull(parameters);
         Assert.Equal(3, parameters.Length);
         Assert.Equal(4, parameters[0]);
@@ -80,13 +75,11 @@ public class NotInRuleTransformerTests
         var values = new List<string> { "Yellow", "Purple" };
         var rule = new FilterRule("Color", "not_in", values);
         var fieldName = "\"Color\"";
-        var parameterName = "$4";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new PostgreSqlFormatProvider());
 
         // Assert
-        Assert.Equal("\"Color\" NOT IN ($40, $41)", query);
+        Assert.Equal("\"Color\" NOT IN ($1, $2)", query);
         Assert.NotNull(parameters);
         Assert.Equal(2, parameters.Length);
         Assert.Equal("Yellow", parameters[0]);
@@ -99,10 +92,8 @@ public class NotInRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Status", "not_in", null);
         var fieldName = "\"Status\"";
-        var parameterName = "$1";
-
         // Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => _transformer.Transform(rule, fieldName, parameterName));
+        var exception = Assert.Throws<ArgumentNullException>(() => _transformer.Transform(rule, fieldName, 0, new PostgreSqlFormatProvider()));
         Assert.Contains("NOT_IN operator requires a non-null value", exception.Message);
     }
 
@@ -112,10 +103,8 @@ public class NotInRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Status", "not_in", new string[0]);
         var fieldName = "\"Status\"";
-        var parameterName = "$1";
-
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, fieldName, parameterName));
+        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, fieldName, 0, new PostgreSqlFormatProvider()));
         Assert.Contains("NOT_IN operator requires at least one value", exception.Message);
     }
 
@@ -125,10 +114,8 @@ public class NotInRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Status", "not_in", new List<string>());
         var fieldName = "\"Status\"";
-        var parameterName = "$1";
-
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, fieldName, parameterName));
+        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, fieldName, 0, new PostgreSqlFormatProvider()));
         Assert.Contains("NOT_IN operator requires at least one value", exception.Message);
     }
 }

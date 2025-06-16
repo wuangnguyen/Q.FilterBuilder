@@ -35,7 +35,7 @@ public static class ServiceCollectionExtensions
             throw new ArgumentNullException(nameof(configureOptions));
 
         // Register the converter as a singleton with configured options
-        services.TryAddSingleton<QueryBuilderConverter>(_ =>
+        services.TryAddSingleton(_ =>
         {
             var options = new QueryBuilderOptions();
             configureOptions(options);

@@ -1,5 +1,6 @@
 using Q.FilterBuilder.Core.RuleTransformers;
 using Q.FilterBuilder.Core.Models;
+using Q.FilterBuilder.Core.Providers;
 using Xunit;
 
 namespace Q.FilterBuilder.Core.Tests.RuleTransformers;
@@ -38,10 +39,11 @@ public class BasicRuleTransformerTests
         var rule = new FilterRule("Name", "equal", "John");
 
         // Act
-        var (query, parameters) = transformer.Transform(rule, "Name", "@0");
+        var formatProvider = new TestFormatProvider();
+        var (query, parameters) = transformer.Transform(rule, "Name", 0, formatProvider);
 
         // Assert
-        Assert.Equal("Name = @0", query);
+        Assert.Equal("Name = @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal("John", parameters[0]);
@@ -55,7 +57,8 @@ public class BasicRuleTransformerTests
         var rule = new FilterRule("CategoryId", "equal", new[] { 1, 2, 3 });
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => transformer.Transform(rule, "CategoryId", "@0"));
+        var formatProvider = new TestFormatProvider();
+        var exception = Assert.Throws<ArgumentException>(() => transformer.Transform(rule, "CategoryId", 0, formatProvider));
         Assert.Contains("cannot compare with collections", exception.Message);
         Assert.Contains("=", exception.Message);
     }
@@ -68,7 +71,8 @@ public class BasicRuleTransformerTests
         var rule = new FilterRule("Values", "greater", new List<int> { 1, 2, 3 });
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => transformer.Transform(rule, "Values", "@0"));
+        var formatProvider = new TestFormatProvider();
+        var exception = Assert.Throws<ArgumentException>(() => transformer.Transform(rule, "Values", 0, formatProvider));
         Assert.Contains("cannot compare with collections", exception.Message);
         Assert.Contains(">", exception.Message);
     }
@@ -81,10 +85,11 @@ public class BasicRuleTransformerTests
         var rule = new FilterRule("Description", "not_equal", "test string");
 
         // Act
-        var (query, parameters) = transformer.Transform(rule, "Description", "@0");
+        var formatProvider = new TestFormatProvider();
+        var (query, parameters) = transformer.Transform(rule, "Description", 0, formatProvider);
 
         // Assert
-        Assert.Equal("Description != @0", query);
+        Assert.Equal("Description != @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal("test string", parameters[0]);
@@ -98,10 +103,20 @@ public class BasicRuleTransformerTests
         var rule = new FilterRule("Status", "equal", null);
 
         // Act
-        var (query, parameters) = transformer.Transform(rule, "Status", "@0");
+        var formatProvider = new TestFormatProvider();
+        var (query, parameters) = transformer.Transform(rule, "Status", 0, formatProvider);
 
         // Assert
-        Assert.Equal("Status = @0", query);
+        Assert.Equal("Status = @p0", query);
         Assert.Null(parameters);
+    }
+
+    private class TestFormatProvider : IQueryFormatProvider
+    {
+        public string FormatFieldName(string fieldName) => fieldName;
+        public string FormatParameterName(int index) => $"@p{index}";
+        public string ParameterPrefix => "@";
+        public string AndOperator => " AND ";
+        public string OrOperator => " OR ";
     }
 }

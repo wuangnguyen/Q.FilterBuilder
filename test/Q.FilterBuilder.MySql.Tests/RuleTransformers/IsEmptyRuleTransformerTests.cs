@@ -1,4 +1,5 @@
 using Q.FilterBuilder.Core.Models;
+
 using Q.FilterBuilder.MySql.RuleTransformers;
 using Xunit;
 
@@ -19,10 +20,8 @@ public class IsEmptyRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Description", "is_empty", null);
         var fieldName = "`Description`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`Description` = ''", query);
@@ -35,10 +34,8 @@ public class IsEmptyRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Notes", "is_empty", "some value");
         var fieldName = "`Notes`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`Notes` = ''", query);
@@ -51,10 +48,8 @@ public class IsEmptyRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Comment", "is_empty", null);
         var fieldName = "`Comment`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`Comment` = ''", query);
@@ -67,10 +62,8 @@ public class IsEmptyRuleTransformerTests
         // Arrange
         var rule = new FilterRule("User.Profile.Bio", "is_empty", null);
         var fieldName = "`User`.`Profile`.`Bio`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`User`.`Profile`.`Bio` = ''", query);

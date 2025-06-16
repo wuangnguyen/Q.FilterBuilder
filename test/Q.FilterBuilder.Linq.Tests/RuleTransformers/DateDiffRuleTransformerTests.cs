@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Q.FilterBuilder.Core.Models;
+
 using Q.FilterBuilder.Linq.RuleTransformers;
 using Xunit;
 
@@ -21,13 +22,11 @@ public class DateDiffRuleTransformerTests
         // Arrange
         var rule = new FilterRule("CreatedDate", "date_diff", 30);
         var fieldName = "CreatedDate";
-        var parameterName = "param0";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider());
 
         // Assert
-        Assert.Equal("(DateTime.Now - CreatedDate).TotalDays == @param0", query);
+        Assert.Equal("(DateTime.Now - CreatedDate).TotalDays == @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(30, parameters[0]);
@@ -40,13 +39,11 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("LastLogin", "date_diff", 7);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "day" } };
         var fieldName = "LastLogin";
-        var parameterName = "param0";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider());
 
         // Assert
-        Assert.Equal("(DateTime.Now - LastLogin).TotalDays == @param0", query);
+        Assert.Equal("(DateTime.Now - LastLogin).TotalDays == @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(7, parameters[0]);
@@ -59,13 +56,11 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("LastActivity", "date_diff", 24);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "hour" } };
         var fieldName = "LastActivity";
-        var parameterName = "param0";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider());
 
         // Assert
-        Assert.Equal("(DateTime.Now - LastActivity).TotalHours == @param0", query);
+        Assert.Equal("(DateTime.Now - LastActivity).TotalHours == @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(24, parameters[0]);
@@ -78,13 +73,11 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("BirthDate", "date_diff", 6);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "month" } };
         var fieldName = "BirthDate";
-        var parameterName = "param0";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider());
 
         // Assert
-        Assert.Equal("((DateTime.Now.Year - BirthDate.Year) * 12 + DateTime.Now.Month - BirthDate.Month) == @param0", query);
+        Assert.Equal("((DateTime.Now.Year - BirthDate.Year) * 12 + DateTime.Now.Month - BirthDate.Month) == @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(6, parameters[0]);
@@ -97,13 +90,11 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("StartDate", "date_diff", 2);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "year" } };
         var fieldName = "StartDate";
-        var parameterName = "param0";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider());
 
         // Assert
-        Assert.Equal("(DateTime.Now.Year - StartDate.Year) == @param0", query);
+        Assert.Equal("(DateTime.Now.Year - StartDate.Year) == @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(2, parameters[0]);
@@ -116,13 +107,11 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("Timestamp", "date_diff", 30);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "minute" } };
         var fieldName = "Timestamp";
-        var parameterName = "param0";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider());
 
         // Assert
-        Assert.Equal("(DateTime.Now - Timestamp).TotalMinutes == @param0", query);
+        Assert.Equal("(DateTime.Now - Timestamp).TotalMinutes == @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(30, parameters[0]);
@@ -135,13 +124,11 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("EventTime", "date_diff", 45);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "second" } };
         var fieldName = "EventTime";
-        var parameterName = "param0";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider());
 
         // Assert
-        Assert.Equal("(DateTime.Now - EventTime).TotalSeconds == @param0", query);
+        Assert.Equal("(DateTime.Now - EventTime).TotalSeconds == @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(45, parameters[0]);
@@ -154,13 +141,11 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("PreciseTime", "date_diff", 1500);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "millisecond" } };
         var fieldName = "PreciseTime";
-        var parameterName = "param0";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider());
 
         // Assert
-        Assert.Equal("(DateTime.Now - PreciseTime).TotalMilliseconds == @param0", query);
+        Assert.Equal("(DateTime.Now - PreciseTime).TotalMilliseconds == @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(1500, parameters[0]);
@@ -173,10 +158,8 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("CreatedDate", "date_diff", 30);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "invalid" } };
         var fieldName = "CreatedDate";
-        var parameterName = "param0";
-
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, fieldName, parameterName));
+        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider()));
         Assert.Contains("Invalid interval type 'invalid'", exception.Message);
         Assert.Contains("Valid types are: year, month, day, hour, minute, second, millisecond", exception.Message);
     }
@@ -187,10 +170,8 @@ public class DateDiffRuleTransformerTests
         // Arrange
         var rule = new FilterRule("CreatedDate", "date_diff", null);
         var fieldName = "CreatedDate";
-        var parameterName = "param0";
-
         // Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => _transformer.Transform(rule, fieldName, parameterName));
+        var exception = Assert.Throws<ArgumentNullException>(() => _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider()));
         Assert.Contains("DATE_DIFF operator requires a non-null value", exception.Message);
     }
 
@@ -201,13 +182,11 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("UpdatedDate", "date_diff", 15);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "HOUR" } };
         var fieldName = "UpdatedDate";
-        var parameterName = "param0";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider());
 
         // Assert
-        Assert.Equal("(DateTime.Now - UpdatedDate).TotalHours == @param0", query);
+        Assert.Equal("(DateTime.Now - UpdatedDate).TotalHours == @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(15, parameters[0]);
@@ -220,13 +199,11 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("User.Profile.LastLoginDate", "date_diff", 5);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "day" } };
         var fieldName = "User.Profile.LastLoginDate";
-        var parameterName = "param0";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider());
 
         // Assert
-        Assert.Equal("(DateTime.Now - User.Profile.LastLoginDate).TotalDays == @param0", query);
+        Assert.Equal("(DateTime.Now - User.Profile.LastLoginDate).TotalDays == @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(5, parameters[0]);

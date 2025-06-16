@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Q.FilterBuilder.Core.Models;
+
 using Q.FilterBuilder.MySql.RuleTransformers;
 using Xunit;
 
@@ -21,10 +22,8 @@ public class NotInRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Status", "not_in", "Inactive");
         var fieldName = "`Status`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`Status` NOT IN (?)", query);
@@ -39,10 +38,8 @@ public class NotInRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Status", "not_in", new[] { "Inactive", "Deleted", "Archived" });
         var fieldName = "`Status`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`Status` NOT IN (?, ?, ?)", query);
@@ -59,10 +56,8 @@ public class NotInRuleTransformerTests
         // Arrange
         var rule = new FilterRule("CategoryId", "not_in", new[] { 4, 6, 7 });
         var fieldName = "`CategoryId`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`CategoryId` NOT IN (?, ?, ?)", query);
@@ -80,10 +75,8 @@ public class NotInRuleTransformerTests
         var values = new List<string> { "Yellow", "Purple" };
         var rule = new FilterRule("Color", "not_in", values);
         var fieldName = "`Color`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`Color` NOT IN (?, ?)", query);
@@ -99,10 +92,8 @@ public class NotInRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Status", "not_in", null);
         var fieldName = "`Status`";
-        var parameterName = "?";
-
         // Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => _transformer.Transform(rule, fieldName, parameterName));
+        var exception = Assert.Throws<ArgumentNullException>(() => _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider()));
         Assert.Contains("NOT_IN operator requires a non-null value", exception.Message);
     }
 
@@ -112,10 +103,8 @@ public class NotInRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Status", "not_in", new string[0]);
         var fieldName = "`Status`";
-        var parameterName = "?";
-
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, fieldName, parameterName));
+        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider()));
         Assert.Contains("NOT_IN operator requires at least one value", exception.Message);
     }
 
@@ -125,10 +114,8 @@ public class NotInRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Status", "not_in", new List<string>());
         var fieldName = "`Status`";
-        var parameterName = "?";
-
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, fieldName, parameterName));
+        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider()));
         Assert.Contains("NOT_IN operator requires at least one value", exception.Message);
     }
 }

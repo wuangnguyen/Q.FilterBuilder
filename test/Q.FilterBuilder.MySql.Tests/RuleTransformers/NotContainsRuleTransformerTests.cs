@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Q.FilterBuilder.Core.Models;
+
 using Q.FilterBuilder.MySql.RuleTransformers;
 using Xunit;
 
@@ -21,10 +22,8 @@ public class NotContainsRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Name", "not_contains", "spam");
         var fieldName = "`Name`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`Name` NOT LIKE CONCAT('%', ?, '%')", query);
@@ -39,10 +38,8 @@ public class NotContainsRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Description", "not_contains", new[] { "spam", "junk", "fake" });
         var fieldName = "`Description`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("(`Description` NOT LIKE CONCAT('%', ?, '%') AND `Description` NOT LIKE CONCAT('%', ?, '%') AND `Description` NOT LIKE CONCAT('%', ?, '%'))", query);
@@ -60,10 +57,8 @@ public class NotContainsRuleTransformerTests
         var values = new List<string> { "bad", "evil" };
         var rule = new FilterRule("Content", "not_contains", values);
         var fieldName = "`Content`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("(`Content` NOT LIKE CONCAT('%', ?, '%') AND `Content` NOT LIKE CONCAT('%', ?, '%'))", query);
@@ -79,10 +74,8 @@ public class NotContainsRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Email", "not_contains", "@spam.com");
         var fieldName = "`Email`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`Email` NOT LIKE CONCAT('%', ?, '%')", query);
@@ -97,10 +90,8 @@ public class NotContainsRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Name", "not_contains", null);
         var fieldName = "`Name`";
-        var parameterName = "?";
-
         // Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => _transformer.Transform(rule, fieldName, parameterName));
+        var exception = Assert.Throws<ArgumentNullException>(() => _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider()));
         Assert.Contains("NOT_CONTAINS operator requires a non-null value", exception.Message);
     }
 
@@ -110,10 +101,8 @@ public class NotContainsRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Name", "not_contains", new string[0]);
         var fieldName = "`Name`";
-        var parameterName = "?";
-
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, fieldName, parameterName));
+        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider()));
         Assert.Contains("NOT_CONTAINS operator requires at least one value", exception.Message);
     }
 
@@ -123,10 +112,8 @@ public class NotContainsRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Name", "not_contains", "");
         var fieldName = "`Name`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`Name` NOT LIKE CONCAT('%', ?, '%')", query);

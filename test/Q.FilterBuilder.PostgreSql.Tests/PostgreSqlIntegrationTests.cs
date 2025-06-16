@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Q.FilterBuilder.Core;
 using Q.FilterBuilder.Core.Models;
+
 using Q.FilterBuilder.Core.RuleTransformers;
 using Q.FilterBuilder.PostgreSql.Extensions;
 using Xunit;
@@ -102,7 +103,7 @@ public class PostgreSqlIntegrationTests
         var (query, parameters) = filterBuilder.Build(group);
 
         // Assert
-        Assert.Equal("\"Age\" BETWEEN $10 AND $11", query);
+        Assert.Equal("\"Age\" BETWEEN $1 AND $2", query);
         Assert.NotNull(parameters);
         Assert.Equal(2, parameters.Length);
         Assert.Equal(18, parameters[0]);
@@ -125,7 +126,7 @@ public class PostgreSqlIntegrationTests
         var (query, parameters) = filterBuilder.Build(group);
 
         // Assert
-        Assert.Equal("\"Status\" IN ($10, $11, $12)", query);
+        Assert.Equal("\"Status\" IN ($1, $2, $3)", query);
         Assert.NotNull(parameters);
         Assert.Equal(3, parameters.Length);
         Assert.Equal("Active", parameters[0]);
@@ -149,7 +150,7 @@ public class PostgreSqlIntegrationTests
         var (query, parameters) = filterBuilder.Build(group);
 
         // Assert
-        Assert.Equal("\"Description\" LIKE '%' || $10 || '%'", query);
+        Assert.Equal("\"Description\" LIKE '%' || $1 || '%'", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal("test", parameters[0]);
@@ -231,16 +232,16 @@ public class PostgreSqlIntegrationTests
         var filterBuilder = serviceProvider.GetRequiredService<IFilterBuilder>();
 
         var mainGroup = new FilterGroup("AND");
-        
+
         // Add simple rule
         mainGroup.Rules.Add(new FilterRule("Status", "equal", "Active"));
-        
+
         // Add nested OR group
         var orGroup = new FilterGroup("OR");
         orGroup.Rules.Add(new FilterRule("Name", "contains", "John"));
         orGroup.Rules.Add(new FilterRule("Email", "ends_with", "@company.com"));
         mainGroup.Groups.Add(orGroup);
-        
+
         // Add another simple rule
         mainGroup.Rules.Add(new FilterRule("Age", "between", new[] { 25, 65 }));
 
@@ -249,8 +250,8 @@ public class PostgreSqlIntegrationTests
 
         // Assert
         Assert.Contains("\"Status\" = $1", query);
-        Assert.Contains("(\"Name\" LIKE '%' || $40 || '%' OR \"Email\" LIKE '%' || $50)", query);
-        Assert.Contains("\"Age\" BETWEEN $20 AND $21", query);
+        Assert.Contains("(\"Name\" LIKE '%' || $4 || '%' OR \"Email\" LIKE '%' || $5)", query);
+        Assert.Contains("\"Age\" BETWEEN $2 AND $3", query);
         Assert.NotNull(parameters);
         Assert.Equal(5, parameters.Length);
         Assert.Equal("Active", parameters[0]);

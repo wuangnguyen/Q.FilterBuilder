@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Q.FilterBuilder.Core.Models;
+
 using Q.FilterBuilder.MySql.RuleTransformers;
 using Xunit;
 
@@ -21,10 +22,8 @@ public class EndsWithRuleTransformerTests
         // Arrange
         var rule = new FilterRule("FileName", "ends_with", ".pdf");
         var fieldName = "`FileName`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`FileName` LIKE CONCAT('%', ?)", query);
@@ -39,10 +38,8 @@ public class EndsWithRuleTransformerTests
         // Arrange
         var rule = new FilterRule("FileName", "ends_with", new[] { ".jpg", ".png", ".gif" });
         var fieldName = "`FileName`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("(`FileName` LIKE CONCAT('%', ?) OR `FileName` LIKE CONCAT('%', ?) OR `FileName` LIKE CONCAT('%', ?))", query);
@@ -60,10 +57,8 @@ public class EndsWithRuleTransformerTests
         var values = new List<string> { ".doc", ".docx" };
         var rule = new FilterRule("Document", "ends_with", values);
         var fieldName = "`Document`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("(`Document` LIKE CONCAT('%', ?) OR `Document` LIKE CONCAT('%', ?))", query);
@@ -79,10 +74,8 @@ public class EndsWithRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Email", "ends_with", "@company.com");
         var fieldName = "`Email`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`Email` LIKE CONCAT('%', ?)", query);
@@ -97,10 +90,8 @@ public class EndsWithRuleTransformerTests
         // Arrange
         var rule = new FilterRule("FileName", "ends_with", null);
         var fieldName = "`FileName`";
-        var parameterName = "?";
-
         // Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => _transformer.Transform(rule, fieldName, parameterName));
+        var exception = Assert.Throws<ArgumentNullException>(() => _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider()));
         Assert.Contains("ENDS_WITH operator requires a non-null value", exception.Message);
     }
 
@@ -110,10 +101,8 @@ public class EndsWithRuleTransformerTests
         // Arrange
         var rule = new FilterRule("FileName", "ends_with", new string[0]);
         var fieldName = "`FileName`";
-        var parameterName = "?";
-
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, fieldName, parameterName));
+        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider()));
         Assert.Contains("ENDS_WITH operator requires at least one value", exception.Message);
     }
 
@@ -123,10 +112,8 @@ public class EndsWithRuleTransformerTests
         // Arrange
         var rule = new FilterRule("FileName", "ends_with", "");
         var fieldName = "`FileName`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`FileName` LIKE CONCAT('%', ?)", query);

@@ -16,8 +16,8 @@ public class BetweenRuleTransformer : BetweenTransformerBase
     }
 
     /// <inheritdoc />
-    protected override string BuildBetweenQuery(string fieldName, string parameterName)
+    protected override string BuildBetweenQuery(string fieldName, string param1, string param2)
     {
-        return $"{fieldName} BETWEEN {parameterName}0 AND {parameterName}1";
+        return $"{fieldName} BETWEEN {param1} AND {param2}";
     }
 }

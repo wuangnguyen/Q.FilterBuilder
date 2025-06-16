@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Q.FilterBuilder.Core.Extensions;
 using Q.FilterBuilder.Core.Models;
+
+using Q.FilterBuilder.Core.Providers;
 using Q.FilterBuilder.Core.RuleTransformers;
 using Xunit;
 
@@ -66,7 +68,7 @@ public class RuleTransformerServiceCollectionExtensionsTests
         // Assert
         var service = serviceProvider.GetService<IRuleTransformerService>();
         Assert.NotNull(service);
-        
+
         // Test that built-in transformers are registered
         var equalTransformer = service.GetRuleTransformer("equal");
         Assert.NotNull(equalTransformer);
@@ -154,10 +156,10 @@ public class RuleTransformerServiceCollectionExtensionsTests
         // Assert
         var service = serviceProvider.GetService<IRuleTransformerService>();
         Assert.NotNull(service);
-        
+
         var transformer1 = service.GetRuleTransformer("custom1");
         var transformer2 = service.GetRuleTransformer("custom2");
-        
+
         Assert.IsType<TestRuleTransformer>(transformer1);
         Assert.IsType<TestRuleTransformer2>(transformer2);
     }
@@ -178,12 +180,12 @@ public class RuleTransformerServiceCollectionExtensionsTests
         // Assert
         var service = serviceProvider.GetService<IRuleTransformerService>();
         Assert.NotNull(service);
-        
+
         // Test built-in transformer still works
         var equalTransformer = service.GetRuleTransformer("equal");
         Assert.NotNull(equalTransformer);
         Assert.IsType<BasicRuleTransformer>(equalTransformer);
-        
+
         // Test custom transformer works
         var customTransformer = service.GetRuleTransformer("custom");
         Assert.IsType<TestRuleTransformer>(customTransformer);
@@ -205,7 +207,7 @@ public class RuleTransformerServiceCollectionExtensionsTests
         // Assert
         var service = serviceProvider.GetService<IRuleTransformerService>();
         Assert.NotNull(service);
-        
+
         // Test that built-in transformer was overridden
         var equalTransformer = service.GetRuleTransformer("equal");
         Assert.IsType<TestRuleTransformer>(equalTransformer);
@@ -213,7 +215,7 @@ public class RuleTransformerServiceCollectionExtensionsTests
 
     private class TestRuleTransformer : IRuleTransformer
     {
-        public (string query, object[]? parameters) Transform(FilterRule rule, string fieldName, string parameterName)
+        public (string query, object[]? parameters) Transform(FilterRule rule, string fieldName, int parameterIndex, IQueryFormatProvider formatProvider)
         {
             return ("TEST QUERY", new object[] { "test" });
         }
@@ -221,7 +223,7 @@ public class RuleTransformerServiceCollectionExtensionsTests
 
     private class TestRuleTransformer2 : IRuleTransformer
     {
-        public (string query, object[]? parameters) Transform(FilterRule rule, string fieldName, string parameterName)
+        public (string query, object[]? parameters) Transform(FilterRule rule, string fieldName, int parameterIndex, IQueryFormatProvider formatProvider)
         {
             return ("TEST QUERY 2", new object[] { "test2" });
         }

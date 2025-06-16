@@ -19,7 +19,7 @@ public class NotContainsRuleTransformer : CollectionParameterTransformer
     /// <inheritdoc />
     protected override string BuildSingleCondition(string fieldName, string parameterName, int index)
     {
-        return $"{fieldName} NOT LIKE '%' || {parameterName}{index} || '%'";
+        return $"{fieldName} NOT LIKE '%' || {parameterName} || '%'";
     }
 
     /// <inheritdoc />

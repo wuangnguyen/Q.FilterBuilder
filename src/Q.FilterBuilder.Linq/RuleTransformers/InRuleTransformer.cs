@@ -44,9 +44,10 @@ public class InRuleTransformer : BaseRuleTransformer
     }
 
     /// <inheritdoc />
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
         // LINQ uses the reverse approach: collection.Contains(field)
-        return $"@{parameterName}.Contains({fieldName})";
+        var paramName = context.FormatProvider!.FormatParameterName(context.ParameterIndex);
+        return $"{paramName}.Contains({fieldName})";
     }
 }

@@ -1,4 +1,5 @@
 using Q.FilterBuilder.Core.Models;
+
 using Q.FilterBuilder.MySql.RuleTransformers;
 using Xunit;
 
@@ -19,10 +20,8 @@ public class IsNotEmptyRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Description", "is_not_empty", null);
         var fieldName = "`Description`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`Description` != ''", query);
@@ -35,10 +34,8 @@ public class IsNotEmptyRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Notes", "is_not_empty", "some value");
         var fieldName = "`Notes`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`Notes` != ''", query);
@@ -51,10 +48,8 @@ public class IsNotEmptyRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Title", "is_not_empty", null);
         var fieldName = "`Title`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`Title` != ''", query);
@@ -67,10 +62,8 @@ public class IsNotEmptyRuleTransformerTests
         // Arrange
         var rule = new FilterRule("User.Profile.Name", "is_not_empty", null);
         var fieldName = "`User`.`Profile`.`Name`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`User`.`Profile`.`Name` != ''", query);

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Q.FilterBuilder.Core.Models;
+
 using Q.FilterBuilder.SqlServer.RuleTransformers;
 using Xunit;
 
@@ -17,10 +18,10 @@ public class EndsWithRuleTransformerTests
         var rule = new FilterRule("Name", "ends_with", "test");
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "Name", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "Name", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("Name LIKE N'%' + @param0", query);
+        Assert.Equal("Name LIKE N'%' + @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal("test", parameters[0]);
@@ -33,10 +34,10 @@ public class EndsWithRuleTransformerTests
         var rule = new FilterRule("Name", "ends_with", new[] { "test1", "test2" });
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "Name", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "Name", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("(Name LIKE N'%' + @param0 OR Name LIKE N'%' + @param1)", query);
+        Assert.Equal("(Name LIKE N'%' + @p0 OR Name LIKE N'%' + @p1)", query);
         Assert.NotNull(parameters);
         Assert.Equal(2, parameters.Length);
         Assert.Equal("test1", parameters[0]);
@@ -50,10 +51,10 @@ public class EndsWithRuleTransformerTests
         var rule = new FilterRule("FileName", "ends_with", new[] { ".txt", ".pdf", ".doc" });
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "FileName", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "FileName", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("(FileName LIKE N'%' + @param0 OR FileName LIKE N'%' + @param1 OR FileName LIKE N'%' + @param2)", query);
+        Assert.Equal("(FileName LIKE N'%' + @p0 OR FileName LIKE N'%' + @p1 OR FileName LIKE N'%' + @p2)", query);
         Assert.NotNull(parameters);
         Assert.Equal(3, parameters.Length);
         Assert.Equal(".txt", parameters[0]);
@@ -68,10 +69,10 @@ public class EndsWithRuleTransformerTests
         var rule = new FilterRule("Email", "ends_with", new List<string> { "@gmail.com", "@yahoo.com" });
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "Email", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "Email", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("(Email LIKE N'%' + @param0 OR Email LIKE N'%' + @param1)", query);
+        Assert.Equal("(Email LIKE N'%' + @p0 OR Email LIKE N'%' + @p1)", query);
         Assert.NotNull(parameters);
         Assert.Equal(2, parameters.Length);
         Assert.Equal("@gmail.com", parameters[0]);
@@ -85,7 +86,7 @@ public class EndsWithRuleTransformerTests
         var rule = new FilterRule("Name", "ends_with", null);
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => _transformer.Transform(rule, "Name", "@param"));
+        var exception = Assert.Throws<ArgumentNullException>(() => _transformer.Transform(rule, "Name", 0, new SqlServerFormatProvider()));
         Assert.Contains("ENDS_WITH operator requires a non-null value", exception.Message);
     }
 
@@ -96,7 +97,7 @@ public class EndsWithRuleTransformerTests
         var rule = new FilterRule("Name", "ends_with", new string[0]);
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, "Name", "@param"));
+        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, "Name", 0, new SqlServerFormatProvider()));
         Assert.Contains("ENDS_WITH operator requires at least one value", exception.Message);
     }
 
@@ -107,7 +108,7 @@ public class EndsWithRuleTransformerTests
         var rule = new FilterRule("Name", "ends_with", new List<string>());
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, "Name", "@param"));
+        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, "Name", 0, new SqlServerFormatProvider()));
         Assert.Contains("ENDS_WITH operator requires at least one value", exception.Message);
     }
 
@@ -118,10 +119,10 @@ public class EndsWithRuleTransformerTests
         var rule = new FilterRule("User.Profile.Name", "ends_with", "test");
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "[User].[Profile].[Name]", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "[User].[Profile].[Name]", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("[User].[Profile].[Name] LIKE N'%' + @param0", query);
+        Assert.Equal("[User].[Profile].[Name] LIKE N'%' + @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal("test", parameters[0]);
@@ -134,10 +135,10 @@ public class EndsWithRuleTransformerTests
         var rule = new FilterRule("Name", "ends_with", new[] { "test1", "test2" });
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "Name", "@customParam");
+        var (query, parameters) = _transformer.Transform(rule, "Name", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("(Name LIKE N'%' + @customParam0 OR Name LIKE N'%' + @customParam1)", query);
+        Assert.Equal("(Name LIKE N'%' + @p0 OR Name LIKE N'%' + @p1)", query);
         Assert.NotNull(parameters);
         Assert.Equal(2, parameters.Length);
     }
@@ -149,10 +150,10 @@ public class EndsWithRuleTransformerTests
         var rule = new FilterRule("Code", "ends_with", new[] { 123, 456 });
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "Code", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "Code", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("(Code LIKE N'%' + @param0 OR Code LIKE N'%' + @param1)", query);
+        Assert.Equal("(Code LIKE N'%' + @p0 OR Code LIKE N'%' + @p1)", query);
         Assert.NotNull(parameters);
         Assert.Equal(2, parameters.Length);
         Assert.Equal(123, parameters[0]);
@@ -166,10 +167,10 @@ public class EndsWithRuleTransformerTests
         var rule = new FilterRule("Name", "ends_with", "测试");
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "Name", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "Name", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("Name LIKE N'%' + @param0", query);
+        Assert.Equal("Name LIKE N'%' + @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal("测试", parameters[0]);
@@ -182,10 +183,10 @@ public class EndsWithRuleTransformerTests
         var rule = new FilterRule("Url", "ends_with", ".html");
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "Url", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "Url", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("Url LIKE N'%' + @param0", query);
+        Assert.Equal("Url LIKE N'%' + @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(".html", parameters[0]);
@@ -198,10 +199,10 @@ public class EndsWithRuleTransformerTests
         var rule = new FilterRule("Name", "ends_with", "");
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "Name", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "Name", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("Name LIKE N'%' + @param0", query);
+        Assert.Equal("Name LIKE N'%' + @p0", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal("", parameters[0]);
@@ -214,10 +215,10 @@ public class EndsWithRuleTransformerTests
         var rule = new FilterRule("FileName", "ends_with", new[] { ".jpg", ".png", ".gif", ".bmp" });
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "FileName", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "FileName", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("(FileName LIKE N'%' + @param0 OR FileName LIKE N'%' + @param1 OR FileName LIKE N'%' + @param2 OR FileName LIKE N'%' + @param3)", query);
+        Assert.Equal("(FileName LIKE N'%' + @p0 OR FileName LIKE N'%' + @p1 OR FileName LIKE N'%' + @p2 OR FileName LIKE N'%' + @p3)", query);
         Assert.NotNull(parameters);
         Assert.Equal(4, parameters.Length);
         Assert.Equal(".jpg", parameters[0]);

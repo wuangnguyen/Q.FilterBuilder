@@ -23,7 +23,7 @@ public class DateDiffRuleTransformer : BaseRuleTransformer
     }
 
     /// <inheritdoc />
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
         // Get interval type from metadata, default to "day"
         var intervalType = "day";

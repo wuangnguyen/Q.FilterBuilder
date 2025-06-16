@@ -52,16 +52,20 @@ public abstract class CollectionParameterTransformer : BaseRuleTransformer
     }
 
     /// <inheritdoc />
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
         if (context.Parameters == null || context.Parameters.Length == 0)
         {
             throw new InvalidOperationException($"{_operatorName} operator requires parameters");
         }
 
-        // Generate conditions for each parameter
+        // Generate conditions for each parameter using sequential parameter indices
         var conditions = context.Parameters
-            .Select((_, index) => BuildSingleCondition(fieldName, parameterName, index))
+            .Select((_, index) =>
+            {
+                var parameterName = context.FormatProvider!.FormatParameterName(context.ParameterIndex + index);
+                return BuildSingleCondition(fieldName, parameterName, index);
+            })
             .ToArray();
 
         // If multiple conditions, wrap in parentheses and join with appropriate operator
@@ -78,8 +82,8 @@ public abstract class CollectionParameterTransformer : BaseRuleTransformer
     /// Builds a single condition for the specified parameter index.
     /// </summary>
     /// <param name="fieldName">The field name.</param>
-    /// <param name="parameterName">The base parameter name.</param>
-    /// <param name="index">The parameter index.</param>
+    /// <param name="parameterName">The parameter name for this specific index.</param>
+    /// <param name="index">The parameter index within this rule (0-based).</param>
     /// <returns>The condition string for this parameter.</returns>
     protected abstract string BuildSingleCondition(string fieldName, string parameterName, int index);
 

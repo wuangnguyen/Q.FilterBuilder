@@ -2,6 +2,7 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using Q.FilterBuilder.Core;
 using Q.FilterBuilder.Core.Models;
+
 using Q.FilterBuilder.Linq.Extensions;
 using Xunit;
 
@@ -99,7 +100,7 @@ public class LinqEdgeCaseTests
 
         // Assert
         Assert.Contains("Title = @p0", query);
-        Assert.Contains("Description.Contains(@@p10)", query);
+        Assert.Contains("Description.Contains(@p1)", query);
         Assert.Equal(2, parameters.Length);
         Assert.Equal("", parameters[0]);
         Assert.Equal("", parameters[1]);
@@ -118,7 +119,7 @@ public class LinqEdgeCaseTests
 
         // Assert
         Assert.Contains("Name = @p0", query);
-        Assert.Contains("Code.Contains(@@p10)", query);
+        Assert.Contains("Code.Contains(@p1)", query);
         Assert.Equal(2, parameters.Length);
         Assert.Equal("   ", parameters[0]);
         Assert.Equal("\t\n\r", parameters[1]);
@@ -138,7 +139,7 @@ public class LinqEdgeCaseTests
 
         // Assert
         Assert.Contains("Name = @p0", query);
-        Assert.Contains("City.Contains(@@p10)", query);
+        Assert.Contains("City.Contains(@p1)", query);
         Assert.Contains("Symbol = @p2", query);
         Assert.Equal(3, parameters.Length);
         Assert.Equal("José", parameters[0]);
@@ -175,7 +176,7 @@ public class LinqEdgeCaseTests
         var (query, parameters) = _filterBuilder.Build(group);
 
         // Assert
-        Assert.Contains("Content.Contains(@@p00)", query);
+        Assert.Contains("Content.Contains(@p0)", query);
         Assert.Single(parameters);
         Assert.Equal(longValue, parameters[0]);
     }
@@ -191,7 +192,7 @@ public class LinqEdgeCaseTests
         var (query, parameters) = _filterBuilder.Build(group);
 
         // Assert
-        Assert.Contains("@@p0.Contains(CategoryId)", query);
+        Assert.Contains("@p0.Contains(CategoryId)", query);
         Assert.Single(parameters);
         Assert.IsType<System.Collections.Generic.List<object>>(parameters[0]);
         var list = (System.Collections.Generic.List<object>)parameters[0];
@@ -210,7 +211,7 @@ public class LinqEdgeCaseTests
         var (query, parameters) = _filterBuilder.Build(group);
 
         // Assert
-        Assert.Contains("Score >= @p00 && Score <= @p01", query);
+        Assert.Contains("Score >= @p0 && Score <= @p1", query);
         Assert.Equal(2, parameters.Length);
         Assert.Equal(100, parameters[0]);
         Assert.Equal(100, parameters[1]);

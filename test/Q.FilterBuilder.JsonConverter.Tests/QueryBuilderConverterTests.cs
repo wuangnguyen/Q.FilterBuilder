@@ -1,6 +1,7 @@
 using System;
 using System.Text.Json;
 using Q.FilterBuilder.Core.Models;
+
 using Xunit;
 
 namespace Q.FilterBuilder.JsonConverter.Tests;
@@ -322,6 +323,184 @@ public class QueryBuilderConverterTests
         Assert.NotNull(result);
         Assert.Single(result.Rules);
         Assert.Null(result.Rules[0].Metadata);
+    }
+
+    [Fact]
+    public void Read_RuleWithoutValue_ShouldHaveNullValue()
+    {
+        // Arrange
+        var converter = new QueryBuilderConverter();
+        var options = new JsonSerializerOptions { Converters = { converter } };
+
+        var json = """
+        {
+            "condition": "OR",
+            "rules": [
+                {
+                    "field": "LastLoginDate",
+                    "operator": "is_null",
+                    "type": "datetime"
+                },
+                {
+                    "field": "LastLoginDate",
+                    "operator": "is_not_null",
+                    "type": "datetime"
+                }
+            ]
+        }
+        """;
+
+        // Act
+        var result = JsonSerializer.Deserialize<FilterGroup>(json, options);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("OR", result.Condition);
+        Assert.Equal(2, result.Rules.Count);
+
+        var firstRule = result.Rules[0];
+        Assert.Equal("LastLoginDate", firstRule.FieldName);
+        Assert.Equal("is_null", firstRule.Operator);
+        Assert.Null(firstRule.Value); // Should be null when value property is missing
+        Assert.Equal("datetime", firstRule.Type);
+
+        var secondRule = result.Rules[1];
+        Assert.Equal("LastLoginDate", secondRule.FieldName);
+        Assert.Equal("is_not_null", secondRule.Operator);
+        Assert.Null(secondRule.Value); // Should be null when value property is missing
+        Assert.Equal("datetime", secondRule.Type);
+    }
+
+    [Fact]
+    public void Read_MixedRulesWithAndWithoutValue_ShouldDeserializeCorrectly()
+    {
+        // Arrange
+        var converter = new QueryBuilderConverter();
+        var options = new JsonSerializerOptions { Converters = { converter } };
+
+        var json = """
+        {
+            "condition": "AND",
+            "rules": [
+                {
+                    "field": "Name",
+                    "operator": "equal",
+                    "value": "John",
+                    "type": "string"
+                },
+                {
+                    "field": "LastLoginDate",
+                    "operator": "is_null",
+                    "type": "datetime"
+                },
+                {
+                    "field": "Age",
+                    "operator": "greater",
+                    "value": 25,
+                    "type": "int"
+                }
+            ]
+        }
+        """;
+
+        // Act
+        var result = JsonSerializer.Deserialize<FilterGroup>(json, options);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("AND", result.Condition);
+        Assert.Equal(3, result.Rules.Count);
+
+        // Rule with value
+        var firstRule = result.Rules[0];
+        Assert.Equal("Name", firstRule.FieldName);
+        Assert.Equal("equal", firstRule.Operator);
+        Assert.Equal("John", firstRule.Value);
+        Assert.Equal("string", firstRule.Type);
+
+        // Rule without value
+        var secondRule = result.Rules[1];
+        Assert.Equal("LastLoginDate", secondRule.FieldName);
+        Assert.Equal("is_null", secondRule.Operator);
+        Assert.Null(secondRule.Value);
+        Assert.Equal("datetime", secondRule.Type);
+
+        // Rule with value
+        var thirdRule = result.Rules[2];
+        Assert.Equal("Age", thirdRule.FieldName);
+        Assert.Equal("greater", thirdRule.Operator);
+        Assert.Equal(25, thirdRule.Value);
+        Assert.Equal("int", thirdRule.Type);
+    }
+
+    [Fact]
+    public void Read_ComplexNestedStructureWithMissingValues_ShouldDeserializeCorrectly()
+    {
+        // Arrange
+        var converter = new QueryBuilderConverter();
+        var options = new JsonSerializerOptions { Converters = { converter } };
+
+        var json = """
+        {
+            "condition": "OR",
+            "rules": [
+                {
+                    "condition": "AND",
+                    "rules": [
+                        {
+                            "field": "Department",
+                            "operator": "equal",
+                            "value": "Technology",
+                            "type": "string"
+                        },
+                        {
+                            "field": "LastLoginDate",
+                            "operator": "is_not_null",
+                            "type": "datetime"
+                        }
+                    ]
+                },
+                {
+                    "field": "Role",
+                    "operator": "equal",
+                    "value": "Manager",
+                    "type": "string"
+                }
+            ]
+        }
+        """;
+
+        // Act
+        var result = JsonSerializer.Deserialize<FilterGroup>(json, options);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("OR", result.Condition);
+        Assert.Single(result.Rules);
+        Assert.Single(result.Groups);
+
+        // Check nested group
+        var nestedGroup = result.Groups[0];
+        Assert.Equal("AND", nestedGroup.Condition);
+        Assert.Equal(2, nestedGroup.Rules.Count);
+
+        // Rule with value in nested group
+        var nestedRule1 = nestedGroup.Rules[0];
+        Assert.Equal("Department", nestedRule1.FieldName);
+        Assert.Equal("equal", nestedRule1.Operator);
+        Assert.Equal("Technology", nestedRule1.Value);
+
+        // Rule without value in nested group
+        var nestedRule2 = nestedGroup.Rules[1];
+        Assert.Equal("LastLoginDate", nestedRule2.FieldName);
+        Assert.Equal("is_not_null", nestedRule2.Operator);
+        Assert.Null(nestedRule2.Value);
+
+        // Main rule with value
+        var mainRule = result.Rules[0];
+        Assert.Equal("Role", mainRule.FieldName);
+        Assert.Equal("equal", mainRule.Operator);
+        Assert.Equal("Manager", mainRule.Value);
     }
 
     [Fact]

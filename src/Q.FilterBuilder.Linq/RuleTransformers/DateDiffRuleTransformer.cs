@@ -23,7 +23,7 @@ public class DateDiffRuleTransformer : BaseRuleTransformer
     }
 
     /// <inheritdoc />
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
         // Get interval type from metadata, default to "day"
         var intervalType = "day";
@@ -51,16 +51,17 @@ public class DateDiffRuleTransformer : BaseRuleTransformer
         }
 
         // LINQ uses TimeSpan properties for different intervals
+        var paramName = context.FormatProvider!.FormatParameterName(context.ParameterIndex);
         return lowerIntervalType switch
         {
-            "year" => $"(DateTime.Now.Year - {fieldName}.Year) == @{parameterName}",
-            "month" => $"((DateTime.Now.Year - {fieldName}.Year) * 12 + DateTime.Now.Month - {fieldName}.Month) == @{parameterName}",
-            "day" => $"(DateTime.Now - {fieldName}).TotalDays == @{parameterName}",
-            "hour" => $"(DateTime.Now - {fieldName}).TotalHours == @{parameterName}",
-            "minute" => $"(DateTime.Now - {fieldName}).TotalMinutes == @{parameterName}",
-            "second" => $"(DateTime.Now - {fieldName}).TotalSeconds == @{parameterName}",
-            "millisecond" => $"(DateTime.Now - {fieldName}).TotalMilliseconds == @{parameterName}",
-            _ => $"(DateTime.Now - {fieldName}).TotalDays == @{parameterName}" // Default to day
+            "year" => $"(DateTime.Now.Year - {fieldName}.Year) == {paramName}",
+            "month" => $"((DateTime.Now.Year - {fieldName}.Year) * 12 + DateTime.Now.Month - {fieldName}.Month) == {paramName}",
+            "day" => $"(DateTime.Now - {fieldName}).TotalDays == {paramName}",
+            "hour" => $"(DateTime.Now - {fieldName}).TotalHours == {paramName}",
+            "minute" => $"(DateTime.Now - {fieldName}).TotalMinutes == {paramName}",
+            "second" => $"(DateTime.Now - {fieldName}).TotalSeconds == {paramName}",
+            "millisecond" => $"(DateTime.Now - {fieldName}).TotalMilliseconds == {paramName}",
+            _ => $"(DateTime.Now - {fieldName}).TotalDays == {paramName}" // Default to day
         };
     }
 }

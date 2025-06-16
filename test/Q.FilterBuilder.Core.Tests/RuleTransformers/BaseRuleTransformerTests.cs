@@ -1,4 +1,5 @@
 using Q.FilterBuilder.Core.Models;
+using Q.FilterBuilder.Core.Providers;
 using Q.FilterBuilder.Core.RuleTransformers;
 using Xunit;
 
@@ -13,10 +14,10 @@ public class BaseRuleTransformerTests
         var transformer = new TestBaseRuleTransformer();
         var rule = new FilterRule("TestField", "test_op", "test_value");
         var fieldName = "FormattedField";
-        var parameterName = "@p0";
 
         // Act
-        var (query, parameters) = transformer.Transform(rule, fieldName, parameterName);
+        var formatProvider = new TestFormatProvider();
+        var (query, parameters) = transformer.Transform(rule, fieldName, 0, formatProvider);
 
         // Assert
         Assert.Equal("FormattedField TEST @p0", query);
@@ -31,10 +32,10 @@ public class BaseRuleTransformerTests
         var transformer = new TestBaseRuleTransformer();
         var rule = new FilterRule("TestField", "test_op", null);
         var fieldName = "FormattedField";
-        var parameterName = "@p0";
 
         // Act
-        var (query, parameters) = transformer.Transform(rule, fieldName, parameterName);
+        var formatProvider = new TestFormatProvider();
+        var (query, parameters) = transformer.Transform(rule, fieldName, 0, formatProvider);
 
         // Assert
         Assert.Equal("FormattedField TEST @p0", query);
@@ -49,10 +50,10 @@ public class BaseRuleTransformerTests
         var rule = new FilterRule("TestField", "test_op", "test_value", "string");
         rule.Metadata = new Dictionary<string, object?> { ["custom"] = "value" };
         var fieldName = "FormattedField";
-        var parameterName = "@p0";
 
         // Act
-        var (query, parameters) = transformer.Transform(rule, fieldName, parameterName);
+        var formatProvider = new TestFormatProvider();
+        var (query, parameters) = transformer.Transform(rule, fieldName, 0, formatProvider);
 
         // Assert
         Assert.Equal("FormattedField TEST @p0", query);
@@ -69,10 +70,10 @@ public class BaseRuleTransformerTests
         var transformer = new TestBaseRuleTransformer();
         var rule = new FilterRule("TestField", "test_op", "test_value", "int");
         var fieldName = "FormattedField";
-        var parameterName = "@p0";
 
         // Act
-        var (query, parameters) = transformer.Transform(rule, fieldName, parameterName);
+        var formatProvider = new TestFormatProvider();
+        var (query, parameters) = transformer.Transform(rule, fieldName, 0, formatProvider);
 
         // Assert
         Assert.NotNull(rule.Metadata);
@@ -87,10 +88,10 @@ public class BaseRuleTransformerTests
         var transformer = new TestBaseRuleTransformer();
         var rule = new FilterRule("TestField", "test_op", "test_value");
         var fieldName = "FormattedField";
-        var parameterName = "@p0";
 
         // Act
-        var (query, parameters) = transformer.Transform(rule, fieldName, parameterName);
+        var formatProvider = new TestFormatProvider();
+        var (query, parameters) = transformer.Transform(rule, fieldName, 0, formatProvider);
 
         // Assert
         Assert.NotNull(rule.Metadata);
@@ -106,10 +107,10 @@ public class BaseRuleTransformerTests
         var rule = new FilterRule("TestField", "test_op", "test_value", "string");
         rule.Metadata = new Dictionary<string, object?> { ["type"] = "custom_type" };
         var fieldName = "FormattedField";
-        var parameterName = "@p0";
 
         // Act
-        var (query, parameters) = transformer.Transform(rule, fieldName, parameterName);
+        var formatProvider = new TestFormatProvider();
+        var (query, parameters) = transformer.Transform(rule, fieldName, 0, formatProvider);
 
         // Assert
         Assert.Equal("custom_type", rule.Metadata["type"]);
@@ -160,8 +161,9 @@ public class BaseRuleTransformerTests
 
     private class TestBaseRuleTransformer : BaseRuleTransformer
     {
-        protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+        protected override string BuildQuery(string fieldName, TransformContext context)
         {
+            var parameterName = context.FormatProvider?.FormatParameterName(context.ParameterIndex) ?? "@p0";
             return $"{fieldName} TEST {parameterName}";
         }
 
@@ -170,5 +172,14 @@ public class BaseRuleTransformerTests
         {
             return BuildParameters(value, metadata);
         }
+    }
+
+    private class TestFormatProvider : IQueryFormatProvider
+    {
+        public string FormatFieldName(string fieldName) => fieldName;
+        public string FormatParameterName(int index) => $"@p{index}";
+        public string ParameterPrefix => "@";
+        public string AndOperator => " AND ";
+        public string OrOperator => " OR ";
     }
 }

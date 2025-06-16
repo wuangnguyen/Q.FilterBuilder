@@ -1,5 +1,6 @@
 using System;
 using Q.FilterBuilder.Core.Models;
+
 using Q.FilterBuilder.MySql.RuleTransformers;
 using Xunit;
 
@@ -20,10 +21,8 @@ public class NotBetweenRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Age", "not_between", new[] { 18, 65 });
         var fieldName = "`Age`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`Age` NOT BETWEEN ? AND ?", query);
@@ -41,10 +40,8 @@ public class NotBetweenRuleTransformerTests
         var endDate = new DateTime(2023, 12, 31);
         var rule = new FilterRule("CreatedDate", "not_between", new[] { startDate, endDate });
         var fieldName = "`CreatedDate`";
-        var parameterName = "?";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider());
 
         // Assert
         Assert.Equal("`CreatedDate` NOT BETWEEN ? AND ?", query);
@@ -60,10 +57,8 @@ public class NotBetweenRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Age", "not_between", null);
         var fieldName = "`Age`";
-        var parameterName = "?";
-
         // Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => _transformer.Transform(rule, fieldName, parameterName));
+        var exception = Assert.Throws<ArgumentNullException>(() => _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider()));
         Assert.Contains("NOT_BETWEEN operator requires a non-null value", exception.Message);
     }
 
@@ -73,10 +68,8 @@ public class NotBetweenRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Age", "not_between", new[] { 18 });
         var fieldName = "`Age`";
-        var parameterName = "?";
-
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, fieldName, parameterName));
+        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider()));
         Assert.Contains("NOT_BETWEEN operator requires exactly 2 values", exception.Message);
     }
 
@@ -86,10 +79,8 @@ public class NotBetweenRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Age", "not_between", new[] { 18, 25, 65 });
         var fieldName = "`Age`";
-        var parameterName = "?";
-
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, fieldName, parameterName));
+        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, fieldName, 0, new MySqlFormatProvider()));
         Assert.Contains("NOT_BETWEEN operator requires exactly 2 values", exception.Message);
     }
 }

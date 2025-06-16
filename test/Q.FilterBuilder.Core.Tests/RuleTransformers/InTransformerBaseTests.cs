@@ -1,4 +1,5 @@
 using Q.FilterBuilder.Core.Models;
+using Q.FilterBuilder.Core.Providers;
 using Q.FilterBuilder.Core.RuleTransformers;
 using Xunit;
 
@@ -30,7 +31,7 @@ public class InTransformerBaseTests
         var transformer = new TestInTransformer("IN");
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => 
+        var exception = Assert.Throws<ArgumentNullException>(() =>
             transformer.TestBuildParameters(null, null));
         Assert.Contains("IN operator requires a non-null value", exception.Message);
     }
@@ -57,7 +58,7 @@ public class InTransformerBaseTests
         var emptyArray = new object[0];
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => 
+        var exception = Assert.Throws<ArgumentException>(() =>
             transformer.TestBuildParameters(emptyArray, null));
         Assert.Contains("IN operator requires at least one value", exception.Message);
     }
@@ -184,10 +185,10 @@ public class InTransformerBaseTests
         var transformer = new TestInTransformer("IN");
         var rule = new FilterRule("Status", "in", new object[] { "Active", "Pending", "Approved" });
         var fieldName = "[Status]";
-        var parameterName = "@p";
 
         // Act
-        var (query, parameters) = transformer.Transform(rule, fieldName, parameterName);
+        var formatProvider = new TestFormatProvider();
+        var (query, parameters) = transformer.Transform(rule, fieldName, 0, formatProvider);
 
         // Assert
         Assert.Equal("[Status] IN (@p0, @p1, @p2)", query);

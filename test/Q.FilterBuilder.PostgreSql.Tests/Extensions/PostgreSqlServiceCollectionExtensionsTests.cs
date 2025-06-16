@@ -2,6 +2,7 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using Q.FilterBuilder.Core;
 using Q.FilterBuilder.Core.Models;
+
 using Q.FilterBuilder.Core.Providers;
 using Q.FilterBuilder.Core.TypeConversion;
 using Q.FilterBuilder.Core.RuleTransformers;
@@ -278,7 +279,7 @@ public class PostgreSqlServiceCollectionExtensionsTests
 
         // Assert
         Assert.Contains("\"Name\" = $1", query);
-        Assert.Contains("\"Age\" BETWEEN $20 AND $21", query);
+        Assert.Contains("\"Age\" BETWEEN $2 AND $3", query);
         Assert.Equal(3, parameters.Length);
         Assert.Equal("John", parameters[0]);
         Assert.Equal(18, parameters[1]);

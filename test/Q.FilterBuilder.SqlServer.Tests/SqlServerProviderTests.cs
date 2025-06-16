@@ -67,8 +67,6 @@ public class SqlServerProviderTests
         Assert.Equal("[User Name]", result);
     }
 
-
-
     [Fact]
     public void FormatFieldName_WithEmptyString_ShouldWrapInSquareBrackets()
     {
@@ -133,10 +131,6 @@ public class SqlServerProviderTests
         // Assert
         Assert.Equal("[User[Name]]", result);
     }
-
-
-
-
 
     [Theory]
     [InlineData(0, "@p0")]

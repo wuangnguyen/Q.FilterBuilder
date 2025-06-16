@@ -1,4 +1,5 @@
 using Q.FilterBuilder.Core.Models;
+using Q.FilterBuilder.Core.Providers;
 
 namespace Q.FilterBuilder.Core.RuleTransformers;
 
@@ -14,7 +15,8 @@ public interface IRuleTransformer
     /// </summary>
     /// <param name="rule">The FilterRule to transform.</param>
     /// <param name="fieldName">The formatted field name.</param>
-    /// <param name="parameterName">The formatted parameter name.</param>
+    /// <param name="parameterIndex">The starting parameter index for this rule.</param>
+    /// <param name="formatProvider">The query format provider for generating parameter names.</param>
     /// <returns>A tuple containing the query string and parameters array.</returns>
-    (string query, object[]? parameters) Transform(FilterRule rule, string fieldName, string parameterName);
+    (string query, object[]? parameters) Transform(FilterRule rule, string fieldName, int parameterIndex, IQueryFormatProvider formatProvider);
 }

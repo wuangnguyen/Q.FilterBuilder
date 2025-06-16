@@ -1,4 +1,5 @@
 using Q.FilterBuilder.Core.Models;
+using Q.FilterBuilder.Core.Providers;
 using Q.FilterBuilder.Core.RuleTransformers;
 using Xunit;
 
@@ -30,7 +31,7 @@ public class CollectionParameterTransformerTests
         var transformer = new TestCollectionParameterTransformer("CONTAINS");
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => 
+        var exception = Assert.Throws<ArgumentNullException>(() =>
             transformer.TestBuildParameters(null, null));
         Assert.Contains("CONTAINS operator requires a non-null value", exception.Message);
     }
@@ -89,7 +90,7 @@ public class CollectionParameterTransformerTests
         var emptyArray = new object[0];
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => 
+        var exception = Assert.Throws<ArgumentException>(() =>
             transformer.TestBuildParameters(emptyArray, null));
         Assert.Contains("CONTAINS operator requires at least one value", exception.Message);
     }
@@ -102,7 +103,7 @@ public class CollectionParameterTransformerTests
         var emptyList = new List<object>();
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => 
+        var exception = Assert.Throws<ArgumentException>(() =>
             transformer.TestBuildParameters(emptyList, null));
         Assert.Contains("CONTAINS operator requires at least one value", exception.Message);
     }
@@ -162,10 +163,10 @@ public class CollectionParameterTransformerTests
         var transformer = new TestCollectionParameterTransformer("CONTAINS");
         var rule = new FilterRule("Name", "contains", "John");
         var fieldName = "[Name]";
-        var parameterName = "@p";
 
         // Act
-        var (query, parameters) = transformer.Transform(rule, fieldName, parameterName);
+        var formatProvider = new TestFormatProvider();
+        var (query, parameters) = transformer.Transform(rule, fieldName, 0, formatProvider);
 
         // Assert
         Assert.Equal("[Name] LIKE @p0", query);
@@ -180,10 +181,10 @@ public class CollectionParameterTransformerTests
         var transformer = new TestCollectionParameterTransformer("CONTAINS");
         var rule = new FilterRule("Name", "contains", new[] { "John", "Jane", "Bob" });
         var fieldName = "[Name]";
-        var parameterName = "@p";
 
         // Act
-        var (query, parameters) = transformer.Transform(rule, fieldName, parameterName);
+        var formatProvider = new TestFormatProvider();
+        var (query, parameters) = transformer.Transform(rule, fieldName, 0, formatProvider);
 
         // Assert
         Assert.Equal("([Name] LIKE @p0 OR [Name] LIKE @p1 OR [Name] LIKE @p2)", query);
@@ -201,8 +202,8 @@ public class CollectionParameterTransformerTests
         var context = new TestTransformContext { Parameters = null };
 
         // Act & Assert
-        var exception = Assert.Throws<InvalidOperationException>(() => 
-            transformer.TestBuildQuery("[Field]", "@p", context));
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            transformer.TestBuildQuery("[Field]", "@p0", context));
         Assert.Contains("CONTAINS operator requires parameters", exception.Message);
     }
 
@@ -214,8 +215,8 @@ public class CollectionParameterTransformerTests
         var context = new TestTransformContext { Parameters = [] };
 
         // Act & Assert
-        var exception = Assert.Throws<InvalidOperationException>(() => 
-            transformer.TestBuildQuery("[Field]", "@p", context));
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            transformer.TestBuildQuery("[Field]", "@p0", context));
         Assert.Contains("CONTAINS operator requires parameters", exception.Message);
     }
 
@@ -227,7 +228,7 @@ public class CollectionParameterTransformerTests
 
         protected override string BuildSingleCondition(string fieldName, string parameterName, int index)
         {
-            return $"{fieldName} LIKE {parameterName}{index}";
+            return $"{fieldName} LIKE {parameterName}";
         }
 
         protected override string GetConditionJoinOperator()
@@ -246,9 +247,11 @@ public class CollectionParameterTransformerTests
             var baseContext = new TransformContext
             {
                 Parameters = context.Parameters,
-                Metadata = context.Metadata
+                Metadata = context.Metadata,
+                ParameterIndex = 0,
+                FormatProvider = new TestFormatProvider()
             };
-            return BuildQuery(fieldName, parameterName, baseContext);
+            return BuildQuery(fieldName, baseContext);
         }
     }
 

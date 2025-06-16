@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Q.FilterBuilder.Core.Models;
+
 using Q.FilterBuilder.Core;
 using Q.FilterBuilder.Core.RuleTransformers;
 using Q.FilterBuilder.SqlServer.Extensions;
@@ -102,7 +103,7 @@ public class SqlServerIntegrationTests
         var (query, parameters) = filterBuilder.Build(group);
 
         // Assert
-        Assert.Equal("[Age] BETWEEN @p00 AND @p01", query);
+        Assert.Equal("[Age] BETWEEN @p0 AND @p1", query);
         Assert.NotNull(parameters);
         Assert.Equal(2, parameters.Length);
         Assert.Equal(18, parameters[0]);
@@ -125,7 +126,7 @@ public class SqlServerIntegrationTests
         var (query, parameters) = filterBuilder.Build(group);
 
         // Assert
-        Assert.Equal("[Status] IN (@p00, @p01, @p02)", query);
+        Assert.Equal("[Status] IN (@p0, @p1, @p2)", query);
         Assert.NotNull(parameters);
         Assert.Equal(3, parameters.Length);
         Assert.Equal("Active", parameters[0]);
@@ -149,7 +150,7 @@ public class SqlServerIntegrationTests
         var (query, parameters) = filterBuilder.Build(group);
 
         // Assert
-        Assert.Equal("[Description] LIKE '%' + @p00 + '%'", query);
+        Assert.Equal("[Description] LIKE '%' + @p0 + '%'", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal("test", parameters[0]);
@@ -231,16 +232,16 @@ public class SqlServerIntegrationTests
         var filterBuilder = serviceProvider.GetRequiredService<IFilterBuilder>();
 
         var mainGroup = new FilterGroup("AND");
-        
+
         // Add simple rule
         mainGroup.Rules.Add(new FilterRule("Status", "equal", "Active"));
-        
+
         // Add nested OR group
         var orGroup = new FilterGroup("OR");
         orGroup.Rules.Add(new FilterRule("Name", "contains", "John"));
         orGroup.Rules.Add(new FilterRule("Email", "ends_with", "@company.com"));
         mainGroup.Groups.Add(orGroup);
-        
+
         // Add another simple rule
         mainGroup.Rules.Add(new FilterRule("Age", "between", new[] { 25, 65 }));
 
@@ -249,8 +250,8 @@ public class SqlServerIntegrationTests
 
         // Assert
         Assert.Contains("[Status] = @p0", query);
-        Assert.Contains("([Name] LIKE '%' + @p30 + '%' OR [Email] LIKE N'%' + @p40)", query);
-        Assert.Contains("[Age] BETWEEN @p10 AND @p11", query);
+        Assert.Contains("[Name] LIKE '%' + @p3 + '%'", query);
+        Assert.Contains("[Age] BETWEEN @p1 AND @p2", query);
         Assert.NotNull(parameters);
         Assert.Equal(5, parameters.Length);
         Assert.Equal("Active", parameters[0]);

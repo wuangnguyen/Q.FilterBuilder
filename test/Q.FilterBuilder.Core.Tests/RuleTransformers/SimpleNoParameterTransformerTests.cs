@@ -31,10 +31,8 @@ public class SimpleNoParameterTransformerTests
         // Arrange
         var transformer = new TestSimpleNoParameterTransformer();
         var fieldName = "[TestField]";
-        var parameterName = "@p0";
-
         // Act
-        var result = transformer.TestBuildQuery(fieldName, parameterName);
+        var result = transformer.TestBuildQuery(fieldName, new TestFormatProvider().FormatParameterName(0));
 
         // Assert
         Assert.Equal("[TestField] IS NULL", result);
@@ -47,10 +45,11 @@ public class SimpleNoParameterTransformerTests
         var transformer = new TestSimpleNoParameterTransformer();
         var rule = new FilterRule("TestField", "is_null", null);
         var fieldName = "[TestField]";
-        var parameterName = "@p0";
+
 
         // Act
-        var (query, parameters) = transformer.Transform(rule, fieldName, parameterName);
+        var formatProvider = new TestFormatProvider();
+        var (query, parameters) = transformer.Transform(rule, fieldName, 0, formatProvider);
 
         // Assert
         Assert.Equal("[TestField] IS NULL", query);
@@ -64,10 +63,11 @@ public class SimpleNoParameterTransformerTests
         var transformer = new TestSimpleNoParameterTransformer();
         var rule = new FilterRule("TestField", "is_null", "ignored_value");
         var fieldName = "[TestField]";
-        var parameterName = "@p0";
+
 
         // Act
-        var (query, parameters) = transformer.Transform(rule, fieldName, parameterName);
+        var formatProvider = new TestFormatProvider();
+        var (query, parameters) = transformer.Transform(rule, fieldName, 0, formatProvider);
 
         // Assert
         Assert.Equal("[TestField] IS NULL", query);
@@ -82,10 +82,11 @@ public class SimpleNoParameterTransformerTests
         var rule = new FilterRule("TestField", "is_null", null, "string");
         rule.Metadata = new Dictionary<string, object?> { ["custom"] = "value" };
         var fieldName = "[TestField]";
-        var parameterName = "@p0";
+
 
         // Act
-        var (query, parameters) = transformer.Transform(rule, fieldName, parameterName);
+        var formatProvider = new TestFormatProvider();
+        var (query, parameters) = transformer.Transform(rule, fieldName, 0, formatProvider);
 
         // Assert
         Assert.Equal("[TestField] IS NULL", query);
@@ -161,9 +162,11 @@ public class SimpleNoParameterTransformerTests
             var context = new TransformContext
             {
                 Parameters = null,
-                Metadata = new Dictionary<string, object?>()
+                Metadata = new Dictionary<string, object?>(),
+                ParameterIndex = 0,
+                FormatProvider = new TestFormatProvider()
             };
-            return BuildQuery(fieldName, parameterName, context);
+            return BuildQuery(fieldName, context);
         }
     }
 }

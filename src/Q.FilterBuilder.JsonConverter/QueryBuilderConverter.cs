@@ -72,7 +72,9 @@ public class QueryBuilderConverter : JsonConverter<FilterGroup>
                 var explicitType = ruleElement.TryGetProperty(_options.TypePropertyName, out var typeElement)
                     ? typeElement.GetString()
                     : null;
-                var rawValue = ExtractRawJsonValue(ruleElement.GetProperty(_options.ValuePropertyName));
+                var rawValue = ruleElement.TryGetProperty(_options.ValuePropertyName, out var valueElement)
+                    ? ExtractRawJsonValue(valueElement)
+                    : null;
                 var metadata = ruleElement.TryGetProperty(_options.DataPropertyName, out var dataElement)
                     ? JsonElementParser.ParseJsonElement(dataElement) as Dictionary<string, object?>
                     : null;

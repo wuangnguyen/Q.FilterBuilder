@@ -43,16 +43,20 @@ public class EndsWithRuleTransformer : BaseRuleTransformer
     }
 
     /// <inheritdoc />
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
         if (context.Parameters == null || context.Parameters.Length == 0)
         {
             throw new InvalidOperationException("ENDS_WITH operator requires parameters");
         }
 
-        // Generate EndsWith conditions for each parameter
+        // Generate EndsWith conditions for each parameter using sequential parameter indices
         var endsWithConditions = context.Parameters
-            .Select((_, index) => $"{fieldName}.EndsWith(@{parameterName}{index})")
+            .Select((_, index) =>
+            {
+                var paramName = context.FormatProvider!.FormatParameterName(context.ParameterIndex + index);
+                return $"{fieldName}.EndsWith({paramName})";
+            })
             .ToArray();
 
         // If multiple conditions, wrap in parentheses and join with OR

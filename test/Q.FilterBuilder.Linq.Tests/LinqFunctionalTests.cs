@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Q.FilterBuilder.Core;
 using Q.FilterBuilder.Core.Models;
+
 using Q.FilterBuilder.Linq.Extensions;
 using Xunit;
 
@@ -87,7 +88,7 @@ public class LinqFunctionalTests
         var (query, parameters) = _filterBuilder.Build(group);
 
         // Assert
-        Assert.Contains("Name.Contains(@@p00)", query);
+        Assert.Contains("Name.Contains(@p0)", query);
         Assert.Single(parameters);
         Assert.Equal("John", parameters[0]);
     }
@@ -103,7 +104,7 @@ public class LinqFunctionalTests
         var (query, parameters) = _filterBuilder.Build(group);
 
         // Assert
-        Assert.Contains("Age >= @p00 && Age <= @p01", query);
+        Assert.Contains("Age >= @p0 && Age <= @p1", query);
         Assert.Equal(2, parameters.Length);
         Assert.Equal(18, parameters[0]);
         Assert.Equal(65, parameters[1]);
@@ -120,7 +121,7 @@ public class LinqFunctionalTests
         var (query, parameters) = _filterBuilder.Build(group);
 
         // Assert
-        Assert.Contains("@@p0.Contains(CategoryId)", query);
+        Assert.Contains("@p0.Contains(CategoryId)", query);
         Assert.Single(parameters);
         Assert.IsType<List<object>>(parameters[0]);
         var list = (List<object>)parameters[0];
@@ -160,8 +161,8 @@ public class LinqFunctionalTests
         var (query, parameters) = _filterBuilder.Build(group);
 
         // Assert
-        Assert.Contains("FirstName.StartsWith(@@p00)", query);
-        Assert.Contains("Email.EndsWith(@@p10)", query);
+        Assert.Contains("FirstName.StartsWith(@p0)", query);
+        Assert.Contains("Email.EndsWith(@p1)", query);
         Assert.Contains("&&", query);
         Assert.Equal(2, parameters.Length);
         Assert.Equal("Jo", parameters[0]);
@@ -320,7 +321,7 @@ public class LinqFunctionalTests
         var (query, parameters) = _filterBuilder.Build(group);
 
         // Assert
-        Assert.Contains("!Content.Contains(@@p00)", query);
+        Assert.Contains("!Content.Contains(@p0)", query);
         Assert.Single(parameters);
         Assert.Equal("spam", parameters[0]);
     }

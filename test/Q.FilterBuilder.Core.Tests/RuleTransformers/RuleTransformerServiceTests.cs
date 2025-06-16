@@ -1,5 +1,6 @@
 using Q.FilterBuilder.Core.RuleTransformers;
 using Q.FilterBuilder.Core.Models;
+using Q.FilterBuilder.Core.Providers;
 using Xunit;
 
 namespace Q.FilterBuilder.Core.Tests.RuleTransformers;
@@ -57,7 +58,7 @@ public class RuleTransformerServiceTests
 
     private class TestRuleTransformer : IRuleTransformer
     {
-        public (string query, object[]? parameters) Transform(FilterRule rule, string fieldName, string parameterName)
+        public (string query, object[]? parameters) Transform(FilterRule rule, string fieldName, int parameterIndex, IQueryFormatProvider formatProvider)
         {
             return ("test query", new object[] { "test" });
         }

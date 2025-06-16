@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Q.FilterBuilder.Core.Models;
+
 using Xunit;
 
 namespace Q.FilterBuilder.JsonConverter.Tests;
@@ -16,7 +17,7 @@ public class QueryBuilderConverterCustomPropertiesTests
         };
         var converter = new QueryBuilderConverter(customOptions);
         var options = new JsonSerializerOptions { Converters = { converter } };
-        
+
         var json = """
         {
             "combinator": "AND",
@@ -50,7 +51,7 @@ public class QueryBuilderConverterCustomPropertiesTests
         };
         var converter = new QueryBuilderConverter(customOptions);
         var options = new JsonSerializerOptions { Converters = { converter } };
-        
+
         var json = """
         {
             "condition": "OR",
@@ -85,7 +86,7 @@ public class QueryBuilderConverterCustomPropertiesTests
         };
         var converter = new QueryBuilderConverter(customOptions);
         var options = new JsonSerializerOptions { Converters = { converter } };
-        
+
         var json = """
         {
             "condition": "AND",
@@ -120,7 +121,7 @@ public class QueryBuilderConverterCustomPropertiesTests
         };
         var converter = new QueryBuilderConverter(customOptions);
         var options = new JsonSerializerOptions { Converters = { converter } };
-        
+
         var json = """
         {
             "condition": "AND",
@@ -155,7 +156,7 @@ public class QueryBuilderConverterCustomPropertiesTests
         };
         var converter = new QueryBuilderConverter(customOptions);
         var options = new JsonSerializerOptions { Converters = { converter } };
-        
+
         var json = """
         {
             "condition": "AND",
@@ -190,7 +191,7 @@ public class QueryBuilderConverterCustomPropertiesTests
         };
         var converter = new QueryBuilderConverter(customOptions);
         var options = new JsonSerializerOptions { Converters = { converter } };
-        
+
         var json = """
         {
             "condition": "AND",
@@ -225,7 +226,7 @@ public class QueryBuilderConverterCustomPropertiesTests
         };
         var converter = new QueryBuilderConverter(customOptions);
         var options = new JsonSerializerOptions { Converters = { converter } };
-        
+
         var json = """
         {
             "condition": "AND",
@@ -272,14 +273,14 @@ public class QueryBuilderConverterCustomPropertiesTests
         };
         var converter = new QueryBuilderConverter(customOptions);
         var options = new JsonSerializerOptions { Converters = { converter } };
-        
+
         var json = """
         {
             "combinator": "OR",
             "children": [
                 {
                     "id": "ProductName",
-                    "op": "starts_with",
+                    "op": "begins_with",
                     "val": "iPhone",
                     "dataType": "text",
                     "metadata": {
@@ -313,7 +314,7 @@ public class QueryBuilderConverterCustomPropertiesTests
         // Check main rule
         var mainRule = result.Rules[0];
         Assert.Equal("ProductName", mainRule.FieldName);
-        Assert.Equal("starts_with", mainRule.Operator);
+        Assert.Equal("begins_with", mainRule.Operator);
         Assert.Equal("iPhone", mainRule.Value);
         Assert.Equal("text", mainRule.Type);
         Assert.NotNull(mainRule.Metadata);
@@ -347,7 +348,7 @@ public class QueryBuilderConverterCustomPropertiesTests
         };
         var converter = new QueryBuilderConverter(reactOptions);
         var options = new JsonSerializerOptions { Converters = { converter } };
-        
+
         var json = """
         {
             "combinator": "and",

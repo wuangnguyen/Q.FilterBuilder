@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Q.FilterBuilder.Core.Models;
+
 using Q.FilterBuilder.SqlServer.RuleTransformers;
 using Xunit;
 
@@ -17,10 +18,10 @@ public class InRuleTransformerTests
         var rule = new FilterRule("Status", "in", "Active");
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "Status", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "Status", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("Status IN (@param0)", query);
+        Assert.Equal("Status IN (@p0)", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal("Active", parameters[0]);
@@ -33,10 +34,10 @@ public class InRuleTransformerTests
         var rule = new FilterRule("Status", "in", new[] { "Active", "Pending", "Completed" });
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "Status", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "Status", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("Status IN (@param0, @param1, @param2)", query);
+        Assert.Equal("Status IN (@p0, @p1, @p2)", query);
         Assert.NotNull(parameters);
         Assert.Equal(3, parameters.Length);
         Assert.Equal("Active", parameters[0]);
@@ -51,10 +52,10 @@ public class InRuleTransformerTests
         var rule = new FilterRule("Id", "in", new List<int> { 1, 2, 3, 4, 5 });
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "Id", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "Id", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("Id IN (@param0, @param1, @param2, @param3, @param4)", query);
+        Assert.Equal("Id IN (@p0, @p1, @p2, @p3, @p4)", query);
         Assert.NotNull(parameters);
         Assert.Equal(5, parameters.Length);
         Assert.Equal(1, parameters[0]);
@@ -71,10 +72,10 @@ public class InRuleTransformerTests
         var rule = new FilterRule("Value", "in", new object[] { "text", 123, true, 45.67 });
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "Value", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "Value", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("Value IN (@param0, @param1, @param2, @param3)", query);
+        Assert.Equal("Value IN (@p0, @p1, @p2, @p3)", query);
         Assert.NotNull(parameters);
         Assert.Equal(4, parameters.Length);
         Assert.Equal("text", parameters[0]);
@@ -92,10 +93,10 @@ public class InRuleTransformerTests
         var rule = new FilterRule("UserId", "in", new[] { guid1, guid2 });
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "UserId", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "UserId", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("UserId IN (@param0, @param1)", query);
+        Assert.Equal("UserId IN (@p0, @p1)", query);
         Assert.NotNull(parameters);
         Assert.Equal(2, parameters.Length);
         Assert.Equal(guid1, parameters[0]);
@@ -109,7 +110,7 @@ public class InRuleTransformerTests
         var rule = new FilterRule("Status", "in", null);
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => _transformer.Transform(rule, "Status", "@param"));
+        var exception = Assert.Throws<ArgumentNullException>(() => _transformer.Transform(rule, "Status", 0, new SqlServerFormatProvider()));
         Assert.Contains("IN operator requires a non-null value", exception.Message);
     }
 
@@ -120,7 +121,7 @@ public class InRuleTransformerTests
         var rule = new FilterRule("Status", "in", new string[0]);
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, "Status", "@param"));
+        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, "Status", 0, new SqlServerFormatProvider()));
         Assert.Contains("IN operator requires at least one value", exception.Message);
     }
 
@@ -131,7 +132,7 @@ public class InRuleTransformerTests
         var rule = new FilterRule("Status", "in", new List<string>());
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, "Status", "@param"));
+        var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, "Status", 0, new SqlServerFormatProvider()));
         Assert.Contains("IN operator requires at least one value", exception.Message);
     }
 
@@ -142,10 +143,10 @@ public class InRuleTransformerTests
         var rule = new FilterRule("Status", "in", new[] { "Active", "Pending" });
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "Status", "@customParam");
+        var (query, parameters) = _transformer.Transform(rule, "Status", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("Status IN (@customParam0, @customParam1)", query);
+        Assert.Equal("Status IN (@p0, @p1)", query);
         Assert.NotNull(parameters);
         Assert.Equal(2, parameters.Length);
     }
@@ -157,10 +158,10 @@ public class InRuleTransformerTests
         var rule = new FilterRule("User.Status", "in", new[] { "Active", "Pending" });
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "[User].[Status]", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "[User].[Status]", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("[User].[Status] IN (@param0, @param1)", query);
+        Assert.Equal("[User].[Status] IN (@p0, @p1)", query);
         Assert.NotNull(parameters);
         Assert.Equal(2, parameters.Length);
     }
@@ -172,10 +173,10 @@ public class InRuleTransformerTests
         var rule = new FilterRule("CategoryId", "in", 5);
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "CategoryId", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "CategoryId", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("CategoryId IN (@param0)", query);
+        Assert.Equal("CategoryId IN (@p0)", query);
         Assert.NotNull(parameters);
         Assert.Single(parameters);
         Assert.Equal(5, parameters[0]);
@@ -188,10 +189,10 @@ public class InRuleTransformerTests
         var rule = new FilterRule("Price", "in", new[] { 9.99m, 19.99m, 29.99m });
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "Price", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "Price", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("Price IN (@param0, @param1, @param2)", query);
+        Assert.Equal("Price IN (@p0, @p1, @p2)", query);
         Assert.NotNull(parameters);
         Assert.Equal(3, parameters.Length);
         Assert.Equal(9.99m, parameters[0]);
@@ -209,10 +210,10 @@ public class InRuleTransformerTests
         var rule = new FilterRule("CreatedDate", "in", new[] { date1, date2, date3 });
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "CreatedDate", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("CreatedDate IN (@param0, @param1, @param2)", query);
+        Assert.Equal("CreatedDate IN (@p0, @p1, @p2)", query);
         Assert.NotNull(parameters);
         Assert.Equal(3, parameters.Length);
         Assert.Equal(date1, parameters[0]);
@@ -227,10 +228,10 @@ public class InRuleTransformerTests
         var rule = new FilterRule("IsActive", "in", new[] { true, false });
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "IsActive", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "IsActive", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("IsActive IN (@param0, @param1)", query);
+        Assert.Equal("IsActive IN (@p0, @p1)", query);
         Assert.NotNull(parameters);
         Assert.Equal(2, parameters.Length);
         Assert.Equal(true, parameters[0]);
@@ -249,10 +250,10 @@ public class InRuleTransformerTests
         var rule = new FilterRule("Id", "in", values);
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "Id", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "Id", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("Id IN (@param0, @param1, @param2, @param3, @param4, @param5, @param6, @param7, @param8, @param9)", query);
+        Assert.Equal("Id IN (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9)", query);
         Assert.NotNull(parameters);
         Assert.Equal(10, parameters.Length);
         for (int i = 0; i < 10; i++)
@@ -268,10 +269,10 @@ public class InRuleTransformerTests
         var rule = new FilterRule("Value", "in", new object?[] { "test", null, 123 });
 
         // Act
-        var (query, parameters) = _transformer.Transform(rule, "Value", "@param");
+        var (query, parameters) = _transformer.Transform(rule, "Value", 0, new SqlServerFormatProvider());
 
         // Assert
-        Assert.Equal("Value IN (@param0, @param1, @param2)", query);
+        Assert.Equal("Value IN (@p0, @p1, @p2)", query);
         Assert.NotNull(parameters);
         Assert.Equal(3, parameters.Length);
         Assert.Equal("test", parameters[0]);

@@ -43,16 +43,20 @@ public class NotContainsRuleTransformer : BaseRuleTransformer
     }
 
     /// <inheritdoc />
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
         if (context.Parameters == null || context.Parameters.Length == 0)
         {
             throw new InvalidOperationException("NOT_CONTAINS operator requires parameters");
         }
 
-        // Generate NOT Contains conditions for each parameter
+        // Generate NOT Contains conditions for each parameter using sequential parameter indices
         var notContainsConditions = context.Parameters
-            .Select((_, index) => $"!{fieldName}.Contains(@{parameterName}{index})")
+            .Select((_, index) =>
+            {
+                var paramName = context.FormatProvider!.FormatParameterName(context.ParameterIndex + index);
+                return $"!{fieldName}.Contains({paramName})";
+            })
             .ToArray();
 
         // If multiple conditions, wrap in parentheses and join with AND

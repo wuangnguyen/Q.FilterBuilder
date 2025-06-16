@@ -19,7 +19,7 @@ public class BeginsWithRuleTransformer : CollectionParameterTransformer
     /// <inheritdoc />
     protected override string BuildSingleCondition(string fieldName, string parameterName, int index)
     {
-        return $"{fieldName} LIKE {parameterName}{index} + N'%'";
+        return $"{fieldName} LIKE {parameterName} + N'%'";
     }
 
     /// <inheritdoc />

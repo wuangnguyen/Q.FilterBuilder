@@ -19,6 +19,11 @@ public class FilterBuilder : IFilterBuilder
     private readonly IRuleTransformerService _ruleTransformerService;
 
     /// <summary>
+    /// Gets the query format provider used by this filter builder.
+    /// </summary>
+    public IQueryFormatProvider QueryFormatProvider => _queryFormatProvider;
+
+    /// <summary>
     /// Initializes a new instance of the FilterBuilder class with a specific query format provider.
     /// </summary>
     /// <param name="queryFormatProvider">The query format provider (SqlServer, MySQL, Postgres, etc.).</param>
@@ -98,10 +103,9 @@ public class FilterBuilder : IFilterBuilder
         // Get rule transformer instance
         var ruleTransformer = _ruleTransformerService.GetRuleTransformer(rule.Operator);
         var fieldName = _queryFormatProvider.FormatFieldName(rule.FieldName);
-        var parameterName = _queryFormatProvider.FormatParameterName(context.ParameterIndex);
 
         // Transform the rule using the rule transformer
-        var (query, parameters) = ruleTransformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = ruleTransformer.Transform(rule, fieldName, context.ParameterIndex, _queryFormatProvider);
 
         // Update context with parameters
         if (parameters != null)

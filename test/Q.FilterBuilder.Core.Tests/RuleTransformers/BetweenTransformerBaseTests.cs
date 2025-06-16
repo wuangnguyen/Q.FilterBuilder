@@ -30,7 +30,7 @@ public class BetweenTransformerBaseTests
         var transformer = new TestBetweenTransformer("BETWEEN");
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => 
+        var exception = Assert.Throws<ArgumentNullException>(() =>
             transformer.TestBuildParameters(null, null));
         Assert.Contains("BETWEEN operator requires a non-null value", exception.Message);
     }
@@ -42,7 +42,7 @@ public class BetweenTransformerBaseTests
         var transformer = new TestBetweenTransformer("BETWEEN");
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => 
+        var exception = Assert.Throws<ArgumentException>(() =>
             transformer.TestBuildParameters("single_value", null));
         Assert.Contains("BETWEEN operator requires an array or collection with exactly 2 values", exception.Message);
     }
@@ -55,7 +55,7 @@ public class BetweenTransformerBaseTests
         var emptyArray = new object[0];
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => 
+        var exception = Assert.Throws<ArgumentException>(() =>
             transformer.TestBuildParameters(emptyArray, null));
         Assert.Contains("BETWEEN operator requires exactly 2 values", exception.Message);
     }
@@ -68,7 +68,7 @@ public class BetweenTransformerBaseTests
         var singleArray = new object[] { 1 };
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => 
+        var exception = Assert.Throws<ArgumentException>(() =>
             transformer.TestBuildParameters(singleArray, null));
         Assert.Contains("BETWEEN operator requires exactly 2 values", exception.Message);
     }
@@ -81,7 +81,7 @@ public class BetweenTransformerBaseTests
         var threeArray = new object[] { 1, 2, 3 };
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => 
+        var exception = Assert.Throws<ArgumentException>(() =>
             transformer.TestBuildParameters(threeArray, null));
         Assert.Contains("BETWEEN operator requires exactly 2 values", exception.Message);
     }
@@ -173,13 +173,13 @@ public class BetweenTransformerBaseTests
         var transformer = new TestBetweenTransformer("BETWEEN");
         var rule = new FilterRule("Age", "between", new object[] { 18, 65 });
         var fieldName = "[Age]";
-        var parameterName = "@p";
 
         // Act
-        var (query, parameters) = transformer.Transform(rule, fieldName, parameterName);
+        var formatProvider = new TestFormatProvider();
+        var (query, parameters) = transformer.Transform(rule, fieldName, 0, formatProvider);
 
         // Assert
-        Assert.Equal("[Age] BETWEEN @p AND @p", query);
+        Assert.Equal("[Age] BETWEEN @p0 AND @p1", query);
         Assert.Equal(2, parameters!.Length);
         Assert.Equal(18, parameters[0]);
         Assert.Equal(65, parameters[1]);
@@ -191,9 +191,9 @@ public class BetweenTransformerBaseTests
         {
         }
 
-        protected override string BuildBetweenQuery(string fieldName, string parameterName)
+        protected override string BuildBetweenQuery(string fieldName, string param1, string param2)
         {
-            return $"{fieldName} BETWEEN {parameterName} AND {parameterName}";
+            return $"{fieldName} BETWEEN {param1} AND {param2}";
         }
 
         // Expose protected method for testing

@@ -1,4 +1,5 @@
 using Q.FilterBuilder.Core.Models;
+
 using Q.FilterBuilder.PostgreSql.RuleTransformers;
 using Xunit;
 
@@ -19,10 +20,8 @@ public class IsNotEmptyRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Description", "is_not_empty", null);
         var fieldName = "\"Description\"";
-        var parameterName = "$1";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new PostgreSqlFormatProvider());
 
         // Assert
         Assert.Equal("\"Description\" != ''", query);
@@ -35,10 +34,8 @@ public class IsNotEmptyRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Title", "is_not_empty", "some value");
         var fieldName = "\"Title\"";
-        var parameterName = "$3";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new PostgreSqlFormatProvider());
 
         // Assert
         Assert.Equal("\"Title\" != ''", query);
@@ -51,10 +48,8 @@ public class IsNotEmptyRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Content", "is_not_empty", null);
         var fieldName = "\"Content\"";
-        var parameterName = "$7";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new PostgreSqlFormatProvider());
 
         // Assert
         Assert.Equal("\"Content\" != ''", query);
@@ -67,10 +62,8 @@ public class IsNotEmptyRuleTransformerTests
         // Arrange
         var rule = new FilterRule("Article.Body.Text", "is_not_empty", null);
         var fieldName = "\"Article\".\"Body\".\"Text\"";
-        var parameterName = "$12";
-
         // Act
-        var (query, parameters) = _transformer.Transform(rule, fieldName, parameterName);
+        var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new PostgreSqlFormatProvider());
 
         // Assert
         Assert.Equal("\"Article\".\"Body\".\"Text\" != ''", query);

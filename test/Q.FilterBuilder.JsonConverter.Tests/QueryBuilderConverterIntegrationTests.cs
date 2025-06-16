@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Q.FilterBuilder.Core.Models;
+
 using Xunit;
 
 namespace Q.FilterBuilder.JsonConverter.Tests;
@@ -197,7 +198,7 @@ public class QueryBuilderConverterIntegrationTests
             "filters": [
                 {
                     "column": "user_name",
-                    "comparison": "starts_with",
+                    "comparison": "begins_with",
                     "criteria": "admin",
                     "datatype": "text",
                     "options": {
@@ -248,7 +249,7 @@ public class QueryBuilderConverterIntegrationTests
         // Check first rule with metadata
         var userNameRule = result.Rules[0];
         Assert.Equal("user_name", userNameRule.FieldName);
-        Assert.Equal("starts_with", userNameRule.Operator);
+        Assert.Equal("begins_with", userNameRule.Operator);
         Assert.Equal("admin", userNameRule.Value);
         Assert.Equal("text", userNameRule.Type);
         Assert.NotNull(userNameRule.Metadata);
