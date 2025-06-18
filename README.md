@@ -7,6 +7,8 @@
 
 A powerful, flexible, and extensible .NET library for building dynamic and complex filter conditions based on runtime data.
 
+Give it a star if you find it useful! ❤️❤️❤️
+
 ## 🚀 Why Q.FilterBuilder is Powerful
 
 ### 🔧 **Fully Extensible — Customize Anything**
@@ -44,6 +46,15 @@ Q.FilterBuilder is built on **.NET Standard 2.1**, providing comprehensive cross
 - **Microservices** - Containerized and serverless architectures
 - **Background Services** - Windows Services, Linux daemons, hosted services
 
+### 📎 Multiple ORM Support
+
+Output from Q.FilterBuilder can be executed with any ORM that can execute raw SQL queries. 
+
+- **Entity Framework**: Full support for LINQ and database queries
+- **Dapper**: Dynamic SQL execution with micro-ORM capabilities
+- **ADO.NET**: Low-level database access for maximum flexibility
+- **Any Other ORM**: Any ORM that can execute raw SQL queries
+
 ## 🚀 Quick Start
 
 ### Installation
@@ -68,42 +79,35 @@ using Q.FilterBuilder.SqlServer.Extensions;
 // 1. Register with DI
 services.AddSqlServerFilterBuilder();
 
-// OR with custom configuration (SQL Server uses modern options pattern)
-services.AddSqlServerFilterBuilder(options => options
-    .ConfigureTypeConversion(tc => {
-        tc.RegisterConverter("custom", new CustomConverter());
-        tc.RegisterConverter("custom2", new CustomConverter2());
-        tc.RegisterConverter("custom3", new CustomConverter3());
-    }))
-    .ConfigureRuleTransformers(rt => {
-        rt.RegisterTransformer("custom_op", new CustomTransformer());
-        rt.RegisterTransformer("custom_op2", new CustomTransformer2());
-        rt.RegisterTransformer("custom_op3", new CustomTransformer3());
-    }));
+// If you want to register your custom type converters and rule transformers, you can do so like this:
+// services.AddSqlServerFilterBuilder(options => options
+//     .ConfigureTypeConversion(tc => {
+//         tc.RegisterConverter("custom", new CustomConverter());
+//         tc.RegisterConverter("custom2", new CustomConverter2());
+//         tc.RegisterConverter("custom3", new CustomConverter3());
+//     }))
+//     .ConfigureRuleTransformers(rt => {
+//         rt.RegisterTransformer("custom_op", new CustomTransformer());
+//         rt.RegisterTransformer("custom_op2", new CustomTransformer2());
+//         rt.RegisterTransformer("custom_op3", new CustomTransformer3());
+//     }));
 
-// 2. Build filters using JSON Converter
-var json = "<json string from UI>";
-var group = JsonSerializer.Deserialize<FilterGroup>(json, new JsonSerializerOptions
-{
-    Converters = { new QueryBuilderConverter() }
-});
+// 2. Build filter rules
 
-// OR using FluentRuleBuilder
+// using FluentRuleBuilder
+var group = new FluentRuleBuilder()
+    .Where("Age", "greater_or_equal", 18)
+    .Where("Name", "contains", "John")
+    .Where("Status", "in", new[] { "Active", "Pending" })
+    .Where("CreatedDate", "between", new[] { "2023-01-01", "2023-12-31" })
+    .BeginGroup("OR")
+        .Where("Department", "equal", "IT")
+        .Where("Role", "equal", "Admin")
+    .EndGroup()
+    .Where("Email", "is_not_null")
+    .Build();
 
-// var group = new FluentRuleBuilder()
-//     .Where("Age", "greater_or_equal", 18)
-//     .Where("Name", "contains", "John")
-//     .Where("Status", "in", new[] { "Active", "Pending" })
-//     .Where("CreatedDate", "between", new[] { "2023-01-01", "2023-12-31" })
-//     .BeginGroup("OR")
-//         .Where("Department", "equal", "IT")
-//         .Where("Role", "equal", "Admin")
-//     .EndGroup()
-//     .Where("Email", "is_not_null")
-//     .Build();
-
-// OR
-
+// OR build filters manually
 // var group = new FilterGroup("AND");
 // group.Rules.Add(new FilterRule("Age", "greater_or_equal", 18));
 // group.Rules.Add(new FilterRule("Name", "contains", "John"));
@@ -113,19 +117,33 @@ var group = JsonSerializer.Deserialize<FilterGroup>(json, new JsonSerializerOpti
 // var nestedGroup = new FilterGroup("OR");
 // nestedGroup.Rules.Add(new FilterRule("Department", "equal", "IT"));
 // nestedGroup.Rules.Add(new FilterRule("Role", "equal", "Admin"));
-// group.Groups.Add(nestedGroup);
 
+// group.Groups.Add(nestedGroup);
 // group.Rules.Add(new FilterRule("Email", "is_not_null"));
 
-// 3. Generate query
-var (query, parameters) = filterBuilder.Build(group);
-// Result: "[Age] >= @p0 AND [Name] LIKE '%' + @p1 + '%' AND [Status] IN (@p2, @p3)
-//          AND [CreatedDate] BETWEEN @p4 AND @p5 AND ([Department] = @p6 OR [Role] = @p7)
+// OR build filters using JSON converter, this requires the additional Q.FilterBuilder.JsonConverter package
+// var json = "<json string from UI>";
+// var group = JsonSerializer.Deserialize<FilterGroup>(json, new JsonSerializerOptions
+// {
+//     Converters = { new QueryBuilderConverter() }
+// });
+
+// 3. Generate where clause
+var (whereClause, parameters) = _filterBuilder.BuildForEf(group); // see more example for other ORMs in the intergration tests project
+
+// whereClause: "[Age] >= {0} AND [Name] LIKE '%' + {1} + '%' AND [Status] IN ({2}, {3})
+//          AND [CreatedDate] BETWEEN {4} AND {5} AND ([Department] = {6} OR [Role] = {7})
 //          AND [Email] IS NOT NULL"
+// parameters: [18, "John", "Active", "Pending", "2023-01-01", "2023-12-31", "IT", "Admin"]
+
+// 4. Execute query
+var sql = $"SELECT * FROM Users WHERE {whereClause}";
+var users = await _context.Set<User>().FromSqlRaw(sql, parameters).ToListAsync()
+
+// 5. Happy coding!
 ```
 
 📖 **Complete Reference**: [Core Package Guide](src/Q.FilterBuilder.Core/README.md)
-
 
 ## 🔄 How It Works
 
@@ -232,6 +250,29 @@ var group = JsonSerializer.Deserialize<FilterGroup>(json, jqueryOptions);
 
 📖 **JSON Guide**: [JSON Converter Documentation](src/Q.FilterBuilder.JsonConverter/README.md)
 
+## 🧪 Testing
+
+Q.FilterBuilder includes comprehensive integration tests that validate the complete workflow from JSON input to database execution:
+
+### Integration Test Features
+- **Multi-Provider Testing**: SQL Server, MySQL, PostgreSQL using Docker containers
+- **Multi-ORM Support**: Entity Framework, Dapper, ADO.NET compatibility
+- **Real Database Execution**: Tests against actual database instances via Testcontainers
+- **Complete Workflow Validation**: JSON → FilterGroup → SQL → Database Results
+
+### Running Integration Tests
+
+```bash
+# Requires Docker Desktop running
+dotnet test test/Q.FilterBuilder.IntegrationTests/
+
+# Test specific provider
+$env:TEST_DATABASE_PROVIDER="SqlServer"
+dotnet test test/Q.FilterBuilder.IntegrationTests/
+```
+
+📖 **Integration Test Guide**: [Integration Tests Documentation](test/Q.FilterBuilder.IntegrationTests/README.md)
+
 ## 🤝 Contributing
 
 We welcome contributions! Please follow these guidelines:
@@ -244,6 +285,9 @@ cd Q.FilterBuilder
 # Build and test
 dotnet build FilterBuilder.sln
 dotnet test FilterBuilder.sln
+
+# Run integration tests (requires Docker)
+dotnet test test/Q.FilterBuilder.IntegrationTests/
 ```
 
 - Follow C# coding conventions and SOLID, KISS principles
