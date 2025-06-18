@@ -1,0 +1,11 @@
+{
+  "condition": "AND",
+  "rules": [
+    {
+      "field": "Name",
+      "operator": "equal",
+      "value": "John Doe",
+      "type": "string"
+    }
+  ]
+}

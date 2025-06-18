@@ -1,0 +1,45 @@
+{
+  "condition": "AND",
+  "rules": [
+    {
+      "field": "IsActive",
+      "operator": "equal",
+      "value": true,
+      "type": "bool"
+    },
+    {
+      "condition": "OR",
+      "rules": [
+        {
+          "field": "Department",
+          "operator": "equal",
+          "value": "Technology",
+          "type": "string"
+        },
+        {
+          "field": "Role",
+          "operator": "equal",
+          "value": "Manager",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "condition": "AND",
+      "rules": [
+        {
+          "field": "Age",
+          "operator": "greater",
+          "value": 25,
+          "type": "int"
+        },
+        {
+          "field": "Salary",
+          "operator": "greater",
+          "value": 60000,
+          "type": "decimal"
+        }
+      ]
+    }
+  ]
+}

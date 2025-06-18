@@ -1,0 +1,23 @@
+{
+  "condition": "AND",
+  "rules": [
+    {
+      "field": "Department",
+      "operator": "in",
+      "value": [ "Technology", "Marketing", "Finance" ],
+      "type": "string"
+    },
+    {
+      "field": "Age",
+      "operator": "in",
+      "value": [ 25, 30, 35 ],
+      "type": "int"
+    },
+    {
+      "field": "Role",
+      "operator": "not_in",
+      "value": [ "Intern", "Contractor" ],
+      "type": "string"
+    }
+  ]
+}

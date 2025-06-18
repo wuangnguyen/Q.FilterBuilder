@@ -1,0 +1,22 @@
+{
+  "condition": "AND",
+  "rules": [
+    {
+      "field": "CreatedDate",
+      "operator": "greater_or_equal",
+      "value": "2023-01-01T00:00:00Z",
+      "type": "datetime"
+    },
+    {
+      "field": "CreatedDate",
+      "operator": "less",
+      "value": "2024-01-01T00:00:00Z",
+      "type": "datetime"
+    },
+    {
+      "field": "LastLoginDate",
+      "operator": "is_not_null",
+      "value": null
+    }
+  ]
+}

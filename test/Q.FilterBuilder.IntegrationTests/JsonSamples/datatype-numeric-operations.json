@@ -1,0 +1,29 @@
+{
+  "condition": "AND",
+  "rules": [
+    {
+      "field": "Age",
+      "operator": "greater_or_equal",
+      "value": 25,
+      "type": "int"
+    },
+    {
+      "field": "Age",
+      "operator": "less_or_equal",
+      "value": 40,
+      "type": "int"
+    },
+    {
+      "field": "Salary",
+      "operator": "greater",
+      "value": 50000.00,
+      "type": "decimal"
+    },
+    {
+      "field": "Salary",
+      "operator": "less",
+      "value": 100000.00,
+      "type": "decimal"
+    }
+  ]
+}

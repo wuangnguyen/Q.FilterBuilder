@@ -1,0 +1,61 @@
+{
+  "condition": "AND",
+  "rules": [
+    {
+      "field": "IsActive",
+      "operator": "equal",
+      "value": true,
+      "type": "bool"
+    },
+    {
+      "condition": "OR",
+      "rules": [
+        {
+          "field": "Department",
+          "operator": "equal",
+          "value": "Technology",
+          "type": "string"
+        },
+        {
+          "field": "Role",
+          "operator": "equal",
+          "value": "Manager",
+          "type": "string"
+        },
+        {
+          "condition": "AND",
+          "rules": [
+            {
+              "field": "Age",
+              "operator": "greater",
+              "value": 25,
+              "type": "int"
+            },
+            {
+              "field": "Salary",
+              "operator": "greater",
+              "value": 60000,
+              "type": "decimal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "condition": "OR",
+      "rules": [
+        {
+          "field": "CreatedDate",
+          "operator": "greater",
+          "value": "2023-01-01T00:00:00Z",
+          "type": "datetime"
+        },
+        {
+          "field": "LastLoginDate",
+          "operator": "is_not_null",
+          "value": null
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "condition": "OR",
+  "rules": [
+    {
+      "field": "IsActive",
+      "operator": "equal",
+      "value": true,
+      "type": "bool"
+    },
+    {
+      "field": "LastLoginDate",
+      "operator": "is_null",
+      "value": null
+    },
+    {
+      "field": "Department",
+      "operator": "is_not_null",
+      "value": null
+    }
+  ]
+}

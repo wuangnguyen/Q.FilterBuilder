@@ -1,0 +1,29 @@
+{
+  "condition": "OR",
+  "rules": [
+    {
+      "field": "Name",
+      "operator": "equal",
+      "value": "John Doe",
+      "type": "string"
+    },
+    {
+      "field": "Email",
+      "operator": "contains",
+      "value": "@company.com",
+      "type": "string"
+    },
+    {
+      "field": "Department",
+      "operator": "begins_with",
+      "value": "Tech",
+      "type": "string"
+    },
+    {
+      "field": "Role",
+      "operator": "ends_with",
+      "value": "Manager",
+      "type": "string"
+    }
+  ]
+}

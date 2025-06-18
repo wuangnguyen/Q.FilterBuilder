@@ -1,0 +1,11 @@
+{
+  "condition": "AND",
+  "rules": [
+    {
+      "field": "Email",
+      "operator": "contains",
+      "value": "@company.com",
+      "type": "string"
+    }
+  ]
+}

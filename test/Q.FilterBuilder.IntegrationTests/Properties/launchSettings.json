@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Q.FilterBuilder.IntegrationTests": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:55363;http://localhost:55364"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "condition": "AND",
+  "rules": [
+    {
+      "field": "Products.Name",
+      "operator": "equal",
+      "value": "Test Product A",
+      "type": "string"
+    }
+  ]
+}

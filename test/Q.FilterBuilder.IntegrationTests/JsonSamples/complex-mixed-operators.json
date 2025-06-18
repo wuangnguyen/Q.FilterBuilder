@@ -1,0 +1,46 @@
+{
+  "condition": "AND",
+  "rules": [
+    {
+      "field": "Name",
+      "operator": "contains",
+      "value": "John",
+      "type": "string"
+    },
+    {
+      "field": "Email",
+      "operator": "ends_with",
+      "value": "@company.com",
+      "type": "string"
+    },
+    {
+      "field": "Age",
+      "operator": "between",
+      "value": [ 25, 40 ],
+      "type": "int"
+    },
+    {
+      "field": "Department",
+      "operator": "in",
+      "value": [ "Technology", "Marketing" ],
+      "type": "string"
+    },
+    {
+      "field": "IsActive",
+      "operator": "equal",
+      "value": true,
+      "type": "bool"
+    },
+    {
+      "field": "Salary",
+      "operator": "greater_or_equal",
+      "value": 50000.00,
+      "type": "decimal"
+    },
+    {
+      "field": "LastLoginDate",
+      "operator": "is_not_null",
+      "value": null
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "condition": "AND",
+  "rules": [
+    {
+      "field": "IsActive",
+      "operator": "equal",
+      "value": true,
+      "type": "bool"
+    },
+    {
+      "field": "Age",
+      "operator": "greater_or_equal",
+      "value": 25,
+      "type": "int"
+    },
+    {
+      "condition": "OR",
+      "rules": [
+        {
+          "field": "Name",
+          "operator": "contains",
+          "value": "Premium",
+          "type": "string"
+        },
+        {
+          "field": "Salary",
+          "operator": "greater",
+          "value": 60000.0,
+          "type": "decimal"
+        }
+      ]
+    },
+    {
+      "condition": "AND",
+      "rules": [
+        {
+          "field": "Department",
+          "operator": "in",
+          "value": [ "Technology", "Marketing" ],
+          "type": "string"
+        },
+        {
+          "field": "IsActive",
+          "operator": "equal",
+          "value": true,
+          "type": "bool"
+        },
+        {
+          "field": "Age",
+          "operator": "greater",
+          "value": 20,
+          "type": "int"
+        }
+      ]
+    }
+  ]
+}
