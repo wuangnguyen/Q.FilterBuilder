@@ -67,7 +67,7 @@ public class MySqlEdgeCaseTests
 
         // Assert
         Assert.Contains("`User Name` = ?", query);
-        Assert.Contains("`User.Profile.Email` = ?", query);
+        Assert.Contains("`User`.`Profile`.`Email` = ?", query);
         Assert.Contains("`User`Quote` = ?", query);
         Assert.NotNull(parameters);
         Assert.Equal(3, parameters.Length);

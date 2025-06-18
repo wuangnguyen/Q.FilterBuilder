@@ -465,7 +465,7 @@ public class TypeConversionServiceTests
     public void ConvertValue_WithEnumerable_ShouldConvertToArray()
     {
         // Arrange
-        var input = System.Linq.Enumerable.Range(1, 3).Select(x => x.ToString());
+        var input = Enumerable.Range(1, 3).Select(x => x.ToString());
 
         // Act
         var result = _service.ConvertValue(input, "int");

@@ -68,7 +68,7 @@ public class PostgreSqlEdgeCaseTests
 
         // Assert
         Assert.Contains("\"User Name\" = $1", query);
-        Assert.Contains("\"User.Profile.Email\" = $2", query);
+        Assert.Contains("\"User\".\"Profile\".\"Email\" = $2", query);
         Assert.Contains("\"User\"Quote\" = $3", query);
         Assert.NotNull(parameters);
         Assert.Equal(3, parameters.Length);

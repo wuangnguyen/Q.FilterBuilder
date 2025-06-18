@@ -1,3 +1,4 @@
+using System.Linq;
 using Q.FilterBuilder.Core.Providers;
 
 namespace Q.FilterBuilder.MySql;
@@ -19,7 +20,11 @@ public class MySqlFormatProvider : IQueryFormatProvider
     /// <inheritdoc />
     public string FormatFieldName(string fieldName)
     {
-        return $"`{fieldName}`";
+        if (string.IsNullOrEmpty(fieldName))
+            throw new System.ArgumentException("Field name cannot be null or empty.", nameof(fieldName));
+
+        var segments = fieldName.Split('.');
+        return string.Join(".", segments.Select(s => $"`{s}`"));
     }
 
     /// <inheritdoc />

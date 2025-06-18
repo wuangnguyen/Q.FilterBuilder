@@ -1,3 +1,4 @@
+using System;
 using Xunit;
 
 namespace Q.FilterBuilder.PostgreSql.Tests;
@@ -44,6 +45,54 @@ public class PostgreSqlProviderTests
 
         // Assert
         Assert.Equal("\"User Name\"", result);
+    }
+
+    [Fact]
+    public void FormatFieldName_WithMultipleSegments_ShouldWrapEachSegmentInDoubleQuotes()
+    {
+        // Arrange
+        var fieldName = "Products.Name";
+
+        // Act
+        var result = _provider.FormatFieldName(fieldName);
+
+        // Assert
+        Assert.Equal("\"Products\".\"Name\"", result);
+    }
+
+    [Fact]
+    public void FormatFieldName_WithThreeSegments_ShouldWrapEachSegmentInDoubleQuotes()
+    {
+        // Arrange
+        var fieldName = "A.B.C";
+
+        // Act
+        var result = _provider.FormatFieldName(fieldName);
+
+        // Assert
+        Assert.Equal("\"A\".\"B\".\"C\"", result);
+    }
+
+    [Fact]
+    public void FormatFieldName_WithEmptyString_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var fieldName = "";
+
+        // Act & Assert
+        var ex = Assert.Throws<ArgumentException>(() => _provider.FormatFieldName(fieldName));
+        Assert.Contains("Field name cannot be null or empty", ex.Message);
+    }
+
+    [Fact]
+    public void FormatFieldName_WithNullString_ShouldThrowArgumentException()
+    {
+        // Arrange
+        string fieldName = null!;
+
+        // Act & Assert
+        var ex = Assert.Throws<ArgumentException>(() => _provider.FormatFieldName(fieldName));
+        Assert.Contains("Field name cannot be null or empty", ex.Message);
     }
 
     [Theory]

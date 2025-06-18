@@ -1,3 +1,4 @@
+using System;
 using Xunit;
 
 namespace Q.FilterBuilder.SqlServer.Tests;
@@ -68,29 +69,25 @@ public class SqlServerProviderTests
     }
 
     [Fact]
-    public void FormatFieldName_WithEmptyString_ShouldWrapInSquareBrackets()
+    public void FormatFieldName_WithEmptyString_ShouldThrowArgumentException()
     {
         // Arrange
         var fieldName = "";
 
-        // Act
-        var result = _provider.FormatFieldName(fieldName);
-
-        // Assert
-        Assert.Equal("[]", result);
+        // Act & Assert
+        var ex = Assert.Throws<ArgumentException>(() => _provider.FormatFieldName(fieldName));
+        Assert.Contains("Field name cannot be null or empty", ex.Message);
     }
 
     [Fact]
-    public void FormatFieldName_WithNullString_ShouldWrapInSquareBrackets()
+    public void FormatFieldName_WithNullString_ShouldThrowArgumentException()
     {
         // Arrange
         string fieldName = null!;
 
-        // Act
-        var result = _provider.FormatFieldName(fieldName);
-
-        // Assert
-        Assert.Equal("[]", result);
+        // Act & Assert
+        var ex = Assert.Throws<ArgumentException>(() => _provider.FormatFieldName(fieldName));
+        Assert.Contains("Field name cannot be null or empty", ex.Message);
     }
 
     [Fact]
@@ -151,7 +148,7 @@ public class SqlServerProviderTests
     [InlineData("Name", "[Name]")]
     [InlineData("User_Name", "[User_Name]")]
     [InlineData("User-Name", "[User-Name]")]
-    [InlineData("User.Name", "[User.Name]")]
+    [InlineData("User.Name", "[User].[Name]")]
     [InlineData("User@Name", "[User@Name]")]
     [InlineData("User#Name", "[User#Name]")]
     [InlineData("User$Name", "[User$Name]")]
@@ -229,5 +226,31 @@ public class SqlServerProviderTests
 
         // Assert
         Assert.Equal("[123456]", result);
+    }
+
+    [Fact]
+    public void FormatFieldName_WithMultipleSegments_ShouldWrapEachSegmentInBrackets()
+    {
+        // Arrange
+        var fieldName = "Products.Name";
+
+        // Act
+        var result = _provider.FormatFieldName(fieldName);
+
+        // Assert
+        Assert.Equal("[Products].[Name]", result);
+    }
+
+    [Fact]
+    public void FormatFieldName_WithThreeSegments_ShouldWrapEachSegmentInBrackets()
+    {
+        // Arrange
+        var fieldName = "A.B.C";
+
+        // Act
+        var result = _provider.FormatFieldName(fieldName);
+
+        // Assert
+        Assert.Equal("[A].[B].[C]", result);
     }
 }

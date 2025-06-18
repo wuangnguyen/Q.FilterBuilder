@@ -1,5 +1,4 @@
 using Q.FilterBuilder.Core.Models;
-using Q.FilterBuilder.Core.Providers;
 using Q.FilterBuilder.Core.RuleTransformers;
 using Xunit;
 
