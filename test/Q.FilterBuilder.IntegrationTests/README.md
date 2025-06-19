@@ -63,15 +63,15 @@ Tests automatically run against all available providers. To test a specific prov
 
 ```bash
 # SQL Server only
-$env:TEST_DATABASE_PROVIDER="SqlServer"
+$env:DatabaseProvider="SqlServer"
 dotnet test test/Q.FilterBuilder.IntegrationTests/
 
 # MySQL only
-$env:TEST_DATABASE_PROVIDER="MySql"
+$env:DatabaseProvider="MySql"
 dotnet test test/Q.FilterBuilder.IntegrationTests/
 
 # PostgreSQL only
-$env:TEST_DATABASE_PROVIDER="PostgreSql"
+$env:DatabaseProvider="PostgreSql"
 dotnet test test/Q.FilterBuilder.IntegrationTests/
 ```
 
@@ -99,7 +99,7 @@ dotnet test --filter "MixedOperators_ShouldReturnCorrectResults"
 ## Configuration
 
 ### Environment Variables
-- `TEST_DATABASE_PROVIDER` - Database provider to use (SqlServer, MySql, PostgreSql)
+- `DatabaseProvider` - Database provider to use (SqlServer, MySql, PostgreSql)
 
 ### appsettings.test.json
 ```json

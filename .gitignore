@@ -4,3 +4,6 @@ obj
 .vscode
 .config
 .idea/.idea.DynamicWhereBuilder/.idea
+local-nuget
+coveragereport
+**/TestResults

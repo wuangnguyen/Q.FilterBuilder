@@ -1,0 +1,17 @@
+[changelog]
+header = "# Changelog\n\nAll notable changes to this project will be documented in this file.\n"
+body = "{{#each releases}}\n## {{version}} - {{date}}\n{{#each groups}}\n### {{title}}\n{{#each commits}}\n- {{summary}}\n{{/each}}\n{{/each}}\n{{/each}}"
+footer = ""
+
+[git]
+tag_pattern = "v*"
+
+[commit_types]
+feat = { section = "Features", hidden = false }
+fix = { section = "Bug Fixes", hidden = false }
+docs = { section = "Documentation", hidden = false }
+perf = { section = "Performance Improvements", hidden = false }
+style = { section = "Styles", hidden = true }
+refactor = { section = "Code Refactoring", hidden = true }
+test = { section = "Tests", hidden = true }
+chore = { section = "Chores", hidden = true } 

@@ -267,7 +267,7 @@ Q.FilterBuilder includes comprehensive integration tests that validate the compl
 dotnet test test/Q.FilterBuilder.IntegrationTests/
 
 # Test specific provider
-$env:TEST_DATABASE_PROVIDER="SqlServer"
+$env:DatabaseProvider="SqlServer"
 dotnet test test/Q.FilterBuilder.IntegrationTests/
 ```
 
