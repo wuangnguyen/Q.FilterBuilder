@@ -108,9 +108,7 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Install git-cliff
-        run: |
-          curl -sSL https://github.com/orhun/git-cliff/releases/download/v2.2.1/git-cliff-2.2.1-x86_64-unknown-linux-gnu.tar.gz | tar xz
-          sudo mv git-cliff-2.2.1-x86_64-unknown-linux-gnu/git-cliff /usr/local/bin/
+        uses: kenji-miyake/setup-git-cliff@v2
 
       - name: Restore dependencies
         run: dotnet restore FilterBuilder.sln
