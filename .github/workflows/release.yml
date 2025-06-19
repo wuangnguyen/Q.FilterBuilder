@@ -110,7 +110,7 @@ jobs:
       - name: Install git-cliff
         run: |
           curl -sSL https://github.com/orhun/git-cliff/releases/download/v2.2.1/git-cliff-2.2.1-x86_64-unknown-linux-gnu.tar.gz | tar xz
-          sudo mv git-cliff /usr/local/bin/
+          sudo mv git-cliff-2.2.1-x86_64-unknown-linux-gnu/git-cliff /usr/local/bin/
 
       - name: Restore dependencies
         run: dotnet restore FilterBuilder.sln
