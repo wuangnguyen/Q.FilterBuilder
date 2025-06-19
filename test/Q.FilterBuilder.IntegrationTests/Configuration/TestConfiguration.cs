@@ -17,9 +17,9 @@ public class TestConfiguration
     /// </summary>
     public DatabaseProvider GetDatabaseProvider()
     {
-        var providerName = _configuration["DatabaseProvider"] ??
-                          Environment.GetEnvironmentVariable("DatabaseProvider") ??
-                          "SqlServer";
+        var providerName = Environment.GetEnvironmentVariable("DatabaseProvider") ??
+                           _configuration["DatabaseProvider"] ??
+                           "SqlServer";
 
         if (Enum.TryParse<DatabaseProvider>(providerName, true, out var provider))
         {
