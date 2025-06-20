@@ -500,4 +500,108 @@ public class TypeConversionServiceTests
         Assert.Equal(1, dateTime.Month);
         Assert.Equal(1, dateTime.Day);
     }
+
+    [Theory]
+    [InlineData("TRUE", "bool", true)]
+    [InlineData("123", "int", 123)]
+    [InlineData("123", "integer", 123)]
+    [InlineData("456", "long", 456L)]
+    [InlineData("3.14", "double", 3.14)]
+    [InlineData("2.5", "float", 2.5f)]
+    [InlineData("255", "byte", (byte)255)]
+    [InlineData("32767", "short", (short)32767)]
+    [InlineData("4294967295", "uint", 4294967295u)]
+    [InlineData("18446744073709551615", "ulong", 18446744073709551615ul)]
+    [InlineData("65535", "ushort", (ushort)65535)]
+    [InlineData("-128", "sbyte", (sbyte)-128)]
+    [InlineData("test string", "string", "test string")]
+    [InlineData("550e8400-e29b-41d4-a716-446655440000", "guid", "550e8400-e29b-41d4-a716-446655440000")]
+    public void ConvertValue_WithAllPrimitiveTypes_ShouldConvertCorrectly(string input, string type, object expected)
+    {
+        // Act
+        var result = _service.ConvertValue(input, type);
+
+        // Assert
+        if (type == "guid")
+            Assert.Equal(Guid.Parse((string)expected), result);
+        else
+            Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [InlineData("string", typeof(string))]
+    [InlineData("int", typeof(int))]
+    [InlineData("integer", typeof(int))]
+    [InlineData("long", typeof(long))]
+    [InlineData("double", typeof(double))]
+    [InlineData("decimal", typeof(decimal))]
+    [InlineData("float", typeof(float))]
+    [InlineData("byte", typeof(byte))]
+    [InlineData("short", typeof(short))]
+    [InlineData("uint", typeof(uint))]
+    [InlineData("ulong", typeof(ulong))]
+    [InlineData("ushort", typeof(ushort))]
+    [InlineData("sbyte", typeof(sbyte))]
+    [InlineData("bool", typeof(bool))]
+    [InlineData("boolean", typeof(bool))]
+    [InlineData("datetime", typeof(DateTime))]
+    [InlineData("date", typeof(DateTime))]
+    [InlineData("guid", typeof(Guid))]
+    [InlineData("unknown_type", null)]
+    public void GetTargetType_ShouldReturnExpectedType(string typeString, Type expectedType)
+    {
+        // Act
+        var result = typeof(TypeConversionService)
+            .GetMethod("GetTargetType", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            !.Invoke(_service, [typeString]);
+
+        // Assert
+        Assert.Equal(expectedType, result);
+    }
+
+    [Fact]
+    public void GetTargetType_WithCustomConverter_ShouldReturnCustomType()
+    {
+        // Arrange
+        var customConverter = new CustomTypeConverter();
+        _service.RegisterConverter("customtype", customConverter);
+
+        // Act
+        var result = typeof(TypeConversionService)
+            .GetMethod("GetTargetType", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            !.Invoke(_service, ["customtype"]);
+
+        // Assert
+        Assert.Equal(typeof(CustomType), result);
+    }
+
+    private class CustomType { }
+    private class CustomTypeConverter : ITypeConverter<CustomType>
+    {
+        public CustomType Convert(object? value, Dictionary<string, object?>? metadata = null) => new CustomType();
+    }
+
+    [Fact]
+    public void TryDefaultConvert_WithInvalidGuid_ShouldThrow()
+    {
+        // Arrange
+        var ex = Assert.Throws<InvalidOperationException>(() => _service.ConvertValue("not-a-guid", "guid"));
+        Assert.Contains("Failed to convert", ex.Message);
+    }
+
+    [Fact]
+    public void TryDefaultConvert_WithInvalidNumber_ShouldThrow()
+    {
+        // Arrange
+        var ex = Assert.Throws<InvalidOperationException>(() => _service.ConvertValue("not-a-number", "int"));
+        Assert.Contains("Failed to convert", ex.Message);
+    }
+
+    [Fact]
+    public void TryDefaultConvert_WithUnsupportedType_ShouldThrow()
+    {
+        // Arrange
+        var ex = Assert.Throws<InvalidOperationException>(() => _service.ConvertValue("value", "notatype"));
+        Assert.Contains("Unsupported type conversion", ex.Message);
+    }
 }

@@ -1,0 +1,7 @@
+<RunSettings>
+  <CoverletRunSettings>
+    <ExcludeByFile>
+      **/Q.FilterBuilder.Tests.Shared/**/*.cs
+    </ExcludeByFile>
+  </CoverletRunSettings>
+</RunSettings>

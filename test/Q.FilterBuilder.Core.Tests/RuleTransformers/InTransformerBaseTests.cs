@@ -1,5 +1,6 @@
 using Q.FilterBuilder.Core.Models;
 using Q.FilterBuilder.Core.RuleTransformers;
+using Q.FilterBuilder.Core.Providers;
 using Xunit;
 
 namespace Q.FilterBuilder.Core.Tests.RuleTransformers;
@@ -211,21 +212,91 @@ public class InTransformerBaseTests
         Assert.Equal("not_a_collection", result![0]);
     }
 
+    [Fact]
+    public void GenerateParameterPlaceholders_WithFormatProvider_ShouldUseFormatProvider()
+    {
+        // Arrange
+        var transformer = new TestInTransformer("IN");
+        var context = new BaseRuleTransformer.TransformContext { ParameterIndex = 2 };
+        context.FormatProvider = new TestFormatProvider();
+
+        // Act
+        var result = transformer.TestGenerateParameterPlaceholders("ignored", 3, context);
+
+        // Assert
+        Assert.Equal(new[] { "@p2", "@p3", "@p4" }, result);
+    }
+
+    [Fact]
+    public void GenerateParameterPlaceholders_WithAtParameterName_ShouldUseAtIndex()
+    {
+        // Arrange
+        var transformer = new TestInTransformer("IN");
+        var context = new BaseRuleTransformer.TransformContext { ParameterIndex = 0 };
+        context.FormatProvider = null;
+
+        // Act
+        var result = transformer.TestGenerateParameterPlaceholders("@5", 3, context);
+
+        // Assert
+        Assert.Equal(new[] { "@5", "@6", "@7" }, result);
+    }
+
+    [Fact]
+    public void GenerateParameterPlaceholders_DefaultBehavior_ShouldUseParameterNameWithIndex()
+    {
+        // Arrange
+        var transformer = new TestInTransformer("IN");
+        var context = new BaseRuleTransformer.TransformContext { ParameterIndex = 0 };
+        context.FormatProvider = null;
+
+        // Act
+        var result = transformer.TestGenerateParameterPlaceholders("param", 2, context);
+
+        // Assert
+        Assert.Equal(new[] { "param0", "param1" }, result);
+    }
+
+    [Fact]
+    public void BuildQuery_WithNullParameters_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var transformer = new TestInTransformer("IN");
+        var context = new BaseRuleTransformer.TransformContext { Parameters = null };
+
+        // Act & Assert
+        var ex = Assert.Throws<InvalidOperationException>(() => transformer.TestBuildQuery("Field", context));
+        Assert.Contains("IN operator requires parameters", ex.Message);
+    }
+
+    [Fact]
+    public void BuildQuery_WithEmptyParameters_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var transformer = new TestInTransformer("IN");
+        var context = new BaseRuleTransformer.TransformContext { Parameters = [] };
+
+        // Act & Assert
+        var ex = Assert.Throws<InvalidOperationException>(() => transformer.TestBuildQuery("Field", context));
+        Assert.Contains("IN operator requires parameters", ex.Message);
+    }
+
     private class TestInTransformer : InTransformerBase
     {
-        public TestInTransformer(string operatorName) : base(operatorName)
-        {
-        }
+        public TestInTransformer(string operatorName) : base(operatorName) { }
+        protected override string BuildInQuery(string fieldName, string parameterList) => $"{fieldName} IN ({parameterList})";
+        public object[]? TestBuildParameters(object? value, Dictionary<string, object?>? metadata) => BuildParameters(value, metadata);
+        public string[] TestGenerateParameterPlaceholders(string parameterName, int count, object context) => GenerateParameterPlaceholders(parameterName, count, (TransformContext)context);
+        public string TestBuildQuery(string fieldName, object context) => BuildQuery(fieldName, (TransformContext)context);
+    }
 
-        protected override string BuildInQuery(string fieldName, string parameterList)
-        {
-            return $"{fieldName} IN ({parameterList})";
-        }
-
-        // Expose protected method for testing
-        public object[]? TestBuildParameters(object? value, Dictionary<string, object?>? metadata)
-        {
-            return BuildParameters(value, metadata);
-        }
+    // Dummy format provider for testing
+    private class TestFormatProvider : IQueryFormatProvider
+    {
+        public string FormatParameterName(int index) => $"@p{index}";
+        public string FormatFieldName(string fieldName) => fieldName;
+        public string AndOperator => "&&";
+        public string OrOperator => "||";
+        public string ParameterPrefix => string.Empty;
     }
 }

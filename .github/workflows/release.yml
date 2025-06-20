@@ -58,13 +58,49 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Run unit tests only
+      - name: Run unit tests and collect coverage
         run: |
+          mkdir -p coverage-results
           for proj in test/*/*.csproj; do
             if [[ "$proj" != *IntegrationTests* ]]; then
-              dotnet test "$proj" --no-build --configuration Release --logger trx
+              projname=$(basename "$proj" .csproj)
+              dotnet test "$proj" --no-build --configuration Release --settings coverlet.runsettings /p:CollectCoverage=true /p:CoverletOutput=./coverage-results/${projname}-coverage.opencover.xml /p:CoverletOutputFormat=opencover
             fi
           done
+
+      - name: List files after tests
+        run: |
+          echo "Workspace directory structure:"
+          ls -lR
+
+      - name: Find coverage report
+        id: find_coverage
+        run: |
+          file=$(find ./coverage-results -type f -name '*-coverage.opencover.xml' | head -n 1)
+          if [ -z "$file" ]; then
+            echo "No coverage file found!"
+            exit 1
+          fi
+          echo "COVERAGE_FILE=$file" >> $GITHUB_ENV
+
+      - name: Print coverage file path
+        run: echo "Coverage file $COVERAGE_FILE"
+
+      - name: Create Test Coverage Badge
+        uses: simon-k/dotnet-code-coverage-badge@v1.0.0
+        id: create_coverage_badge
+        with:
+          label: Code Coverage
+          color: brightgreen
+          path: ${{ env.COVERAGE_FILE }}
+          gist-filename: c3e6e0a3f443af2ef8f25342c9c1033ee668dbe2/filter-builder-code-coverage.json
+          gist-id: 0ad369a5370256450204a3f97397cb22
+          gist-auth-token: ${{ secrets.GIST_AUTH_TOKEN }}
+
+      - name: Print code coverage
+        run: echo "Code coverage percentage ${{steps.create_coverage_badge.outputs.percentage}}%"
+
+      # Note: Integration tests are not included in code coverage calculation for the badge.
 
   integration-tests:
     runs-on: ubuntu-latest
@@ -152,4 +188,4 @@ jobs:
           git config user.email "github-actions@github.com"
           git add CHANGELOG.md
           git commit -m "chore(release): update changelog [skip ci]" || echo "No changes to commit"
-          git push origin release 
+          git push origin release

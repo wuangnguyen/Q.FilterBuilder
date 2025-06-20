@@ -1,0 +1,19 @@
+{
+  "condition": "AND",
+  "rules": [
+    {
+      "field": "CreatedDate",
+      "operator": "date_diff",
+      "value": 365,
+      "type": "int",
+      "data": { "intervalType": "day" }
+    },
+    {
+      "field": "LastLoginDate",
+      "operator": "date_diff",
+      "value": 12,
+      "type": "int",
+      "data": { "intervalType": "month" }
+    }
+  ]
+} 

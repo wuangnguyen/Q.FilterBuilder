@@ -13,7 +13,7 @@ public abstract class BaseRuleTransformer : IRuleTransformer
     /// <summary>
     /// Internal context to store parameters and other transformation state.
     /// </summary>
-    protected class TransformContext
+    public class TransformContext
     {
         public object[]? Parameters { get; set; }
         public Dictionary<string, object?>? Metadata { get; set; }
@@ -24,11 +24,17 @@ public abstract class BaseRuleTransformer : IRuleTransformer
     /// <inheritdoc />
     public virtual (string query, object[]? parameters) Transform(FilterRule rule, string fieldName, int parameterIndex, IQueryFormatProvider formatProvider)
     {
-        rule.Metadata ??= new Dictionary<string, object?>();
-        if (!rule.Metadata.ContainsKey("type"))
+        // Clone the metadata dictionary to avoid concurrent modification
+        var metadata = rule.Metadata != null
+            ? new Dictionary<string, object?>(rule.Metadata)
+            : new Dictionary<string, object?>();
+
+        if (!metadata.ContainsKey("type"))
         {
-            rule.Metadata["type"] = rule.Type;
+            metadata["type"] = rule.Type;
         }
+
+        rule.Metadata = metadata;
 
         var context = new TransformContext
         {

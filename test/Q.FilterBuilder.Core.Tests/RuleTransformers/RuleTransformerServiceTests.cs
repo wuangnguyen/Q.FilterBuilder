@@ -54,7 +54,32 @@ public class RuleTransformerServiceTests
         Assert.Same(customTransformer, retrievedTransformer);
     }
 
+    [Fact]
+    public void RegisterTransformer_WithNullOperatorName_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var customTransformer = new TestRuleTransformer();
 
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => _service.RegisterTransformer(null!, customTransformer));
+    }
+
+    [Fact]
+    public void RegisterTransformer_WithEmptyOperatorName_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var customTransformer = new TestRuleTransformer();
+
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => _service.RegisterTransformer(string.Empty, customTransformer));
+    }
+
+    [Fact]
+    public void RegisterTransformer_WithNullTransformer_ShouldThrowArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => _service.RegisterTransformer("custom", null!));
+    }
 
     private class TestRuleTransformer : IRuleTransformer
     {

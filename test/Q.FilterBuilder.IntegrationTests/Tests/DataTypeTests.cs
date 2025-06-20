@@ -214,6 +214,20 @@ public class DataTypeTests : IntegrationTestBase
         }
     }
 
+    [Fact]
+    public async Task DateDiffOperations_ShouldReturnSuccessStatusCode()
+    {
+        // Arrange
+        var filterJson = _jsonLoader.LoadTestData("datatype-datediff-operations");
+
+        // Act
+        var response = await Client.PostAsJsonAsync("/api/IntegrationTest/execute-dapper-users", filterJson);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        var result = await response.Content.ReadAsStringAsync();
+    }
+
     public override async Task DisposeAsync()
     {
         _jsonLoader?.Dispose();

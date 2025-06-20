@@ -4,6 +4,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Cross Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)](https://dotnet.microsoft.com/)
 [![Multiple Databases](https://img.shields.io/badge/databases-SQL%20Server%20%7C%20MySQL%20%7C%20PostgreSQL%20%7C%20LINQ-blue.svg)](#-packages)
+[![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/wuangnguyen/0ad369a5370256450204a3f97397cb22/raw/c3e6e0a3f443af2ef8f25342c9c1033ee668dbe2/filter-builder-code-coverage.json)](https://github.com/wuangnguyen/Q.FilterBuilder)
 
 A powerful, flexible, and extensible .NET library for building dynamic and complex filter conditions based on runtime data.
 

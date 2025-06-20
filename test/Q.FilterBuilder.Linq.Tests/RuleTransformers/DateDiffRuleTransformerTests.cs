@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Q.FilterBuilder.Core.Models;
-
 using Q.FilterBuilder.Linq.RuleTransformers;
 using Xunit;
 
@@ -22,6 +21,7 @@ public class DateDiffRuleTransformerTests
         // Arrange
         var rule = new FilterRule("CreatedDate", "date_diff", 30);
         var fieldName = "CreatedDate";
+        
         // Act
         var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider());
 
@@ -39,6 +39,7 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("LastLogin", "date_diff", 7);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "day" } };
         var fieldName = "LastLogin";
+        
         // Act
         var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider());
 
@@ -56,6 +57,7 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("LastActivity", "date_diff", 24);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "hour" } };
         var fieldName = "LastActivity";
+        
         // Act
         var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider());
 
@@ -73,6 +75,7 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("BirthDate", "date_diff", 6);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "month" } };
         var fieldName = "BirthDate";
+        
         // Act
         var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider());
 
@@ -90,6 +93,7 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("StartDate", "date_diff", 2);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "year" } };
         var fieldName = "StartDate";
+        
         // Act
         var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider());
 
@@ -107,6 +111,7 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("Timestamp", "date_diff", 30);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "minute" } };
         var fieldName = "Timestamp";
+        
         // Act
         var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider());
 
@@ -124,6 +129,7 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("EventTime", "date_diff", 45);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "second" } };
         var fieldName = "EventTime";
+        
         // Act
         var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider());
 
@@ -141,6 +147,7 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("PreciseTime", "date_diff", 1500);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "millisecond" } };
         var fieldName = "PreciseTime";
+        
         // Act
         var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider());
 
@@ -158,8 +165,11 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("CreatedDate", "date_diff", 30);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "invalid" } };
         var fieldName = "CreatedDate";
+        
         // Act & Assert
         var exception = Assert.Throws<ArgumentException>(() => _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider()));
+        
+        // Assert
         Assert.Contains("Invalid interval type 'invalid'", exception.Message);
         Assert.Contains("Valid types are: year, month, day, hour, minute, second, millisecond", exception.Message);
     }
@@ -170,8 +180,11 @@ public class DateDiffRuleTransformerTests
         // Arrange
         var rule = new FilterRule("CreatedDate", "date_diff", null);
         var fieldName = "CreatedDate";
+        
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() => _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider()));
+        
+        // Assert
         Assert.Contains("DATE_DIFF operator requires a non-null value", exception.Message);
     }
 
@@ -182,6 +195,7 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("UpdatedDate", "date_diff", 15);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "HOUR" } };
         var fieldName = "UpdatedDate";
+        
         // Act
         var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider());
 
@@ -199,6 +213,7 @@ public class DateDiffRuleTransformerTests
         var rule = new FilterRule("User.Profile.LastLoginDate", "date_diff", 5);
         rule.Metadata = new Dictionary<string, object?> { { "intervalType", "day" } };
         var fieldName = "User.Profile.LastLoginDate";
+        
         // Act
         var (query, parameters) = _transformer.Transform(rule, fieldName, 0, new LinqFormatProvider());
 
