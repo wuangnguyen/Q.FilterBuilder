@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Q.FilterBuilder.Testing.AdoNet;
 
+[ExcludeFromCodeCoverage]
 public class TestDbParameter : DbParameter
 {
     public override void ResetDbType() { }
