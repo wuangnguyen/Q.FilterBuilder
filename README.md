@@ -1,4 +1,7 @@
-# Q.FilterBuilder
+
+[![banner](banner.png)](https://github.com/wuangnguyen/Q.FilterBuilder)
+
+---
 
 [![.NET Standard](https://img.shields.io/badge/.NET%20Standard-2.1-blue.svg)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](LICENSE)
@@ -6,7 +9,7 @@
 [![Multiple Databases](https://img.shields.io/badge/Supported%20Databases-SQL%20Server%20%7C%20MySQL%20%7C%20PostgreSQL-blue.svg)](#-packages)
 [![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/wuangnguyen/0ad369a5370256450204a3f97397cb22/raw/filter-builder-code-coverage.json)](https://github.com/wuangnguyen/Q.FilterBuilder)
 
-A powerful, flexible, and extensible .NET library for building dynamic and complex filter conditions based on runtime data.
+A powerful, flexible, and extensible .NET library for building dynamic and complex filters from end-users at runtime.
 
 Give it a star if you find it useful! ❤️❤️❤️
 

@@ -1,0 +1,17 @@
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background for contrast -->
+  <rect width="100" height="100" rx="24" fill="#23243A"/>
+  <!-- Left curly bracket -->
+  <text x="18" y="50" font-family="Consolas, monospace" font-size="60" fill="#FF4B2B" text-anchor="middle" dominant-baseline="middle">{</text>
+  <!-- Right curly bracket -->
+  <text x="83" y="50" font-family="Consolas, monospace" font-size="60" fill="#FF4B2B" text-anchor="middle" dominant-baseline="middle">}</text>
+  <!-- Magnifying glass (centered) -->
+  <g>
+    <!-- Lens -->
+    <circle cx="48" cy="45" r="16" fill="#FFB199" stroke="#F76D57" stroke-width="3"/>
+    <!-- Handle (diagonal, attached to lens) -->
+    <rect x="0" y="0" width="5" height="20" rx="3" fill="#F76D57" transform="translate(55 59) rotate(-40)"/>
+    <!-- Shine -->
+    <ellipse cx="55" cy="40" rx="4" ry="2" fill="#fff" opacity="0.5"/>
+  </g>
+</svg>
