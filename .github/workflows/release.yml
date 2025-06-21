@@ -70,19 +70,32 @@ jobs:
         run: |
           reportgenerator -reports:coverage-results/**/coverage.cobertura.xml -targetdir:coverage-merged -reporttypes:"Cobertura"
 
-      - name: Create Test Coverage Badge
-        uses: simon-k/dotnet-code-coverage-badge@v1.0.0
-        id: create_coverage_badge
-        with:
-          label: Code Coverage
-          color: brightgreen
-          path: coverage-merged/Cobertura.xml
-          gist-filename: c3e6e0a3f443af2ef8f25342c9c1033ee668dbe2/filter-builder-code-coverage.json
-          gist-id: 0ad369a5370256450204a3f97397cb22
-          gist-auth-token: ${{ secrets.GIST_AUTH_TOKEN }}
+      - name: Extract coverage percentage
+        id: extract_coverage
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxml2-utils jq bc
+          coverage_percentage=$(xmllint --xpath 'string(//coverage/@line-rate)' coverage-merged/Cobertura.xml)
+          coverage_percentage=$(echo "$coverage_percentage * 100" | bc -l | xargs printf "%.2f")
+          label="Code Coverage"
+          color="brightgreen"
+          coverage_json=$(jq -nc --arg schemaVersion "1" --arg label "$label" --arg message "${coverage_percentage}%" --arg color "$color" '{schemaVersion: ($schemaVersion|tonumber), label: $label, message: $message, color: $color}')
+          echo "coverage_percentage=$coverage_percentage" >> $GITHUB_OUTPUT
+          echo "coverage_json=$coverage_json" >> $GITHUB_OUTPUT
+          echo "Coverage JSON: $coverage_json"
 
-      - name: Print code coverage
-        run: echo "Code coverage percentage ${{steps.create_coverage_badge.outputs.percentage}}%"
+      - name: Post coverage badge to GitHub Gist
+        if: steps.extract_coverage.outputs.coverage_json != ''
+        run: |
+            echo "Posting coverage badge to GitHub Gist..."
+            coverage_json_string=$(echo '${{ steps.extract_coverage.outputs.coverage_json }}' | jq -c .)
+            payload=$(jq -nc --arg content "$coverage_json_string" '{"files": {"filter-builder-code-coverage.json": {"content": $content}}}')
+            curl -X PATCH \
+              -H "Authorization: token ${{ secrets.GIST_AUTH_TOKEN }}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "User-Agent: github-actions" \
+              -d "$payload" \
+              "https://api.github.com/gists/0ad369a5370256450204a3f97397cb22"
 
       # Note: Integration tests are not included in code coverage calculation for the badge.
 
