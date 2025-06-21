@@ -1,9 +1,9 @@
 # Q.FilterBuilder
 
 [![.NET Standard](https://img.shields.io/badge/.NET%20Standard-2.1-blue.svg)](https://dotnet.microsoft.com/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Cross Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)](https://dotnet.microsoft.com/)
-[![Multiple Databases](https://img.shields.io/badge/databases-SQL%20Server%20%7C%20MySQL%20%7C%20PostgreSQL%20%7C%20LINQ-blue.svg)](#-packages)
+[![License](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](LICENSE)
+[![Cross Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-blue.svg)](https://dotnet.microsoft.com/)
+[![Multiple Databases](https://img.shields.io/badge/Supported%20Databases-SQL%20Server%20%7C%20MySQL%20%7C%20PostgreSQL-blue.svg)](#-packages)
 [![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/wuangnguyen/0ad369a5370256450204a3f97397cb22/raw/filter-builder-code-coverage.json)](https://github.com/wuangnguyen/Q.FilterBuilder)
 
 A powerful, flexible, and extensible .NET library for building dynamic and complex filter conditions based on runtime data.
@@ -278,26 +278,13 @@ dotnet test test/Q.FilterBuilder.IntegrationTests/
 
 We welcome contributions! Please follow these guidelines:
 
-```bash
-# Clone the repository
-git clone https://github.com/wuangnguyen/Q.FilterBuilder.git
-cd Q.FilterBuilder
-
-# Build and test
-dotnet build FilterBuilder.sln
-dotnet test FilterBuilder.sln
-
-# Run integration tests (requires Docker)
-dotnet test test/Q.FilterBuilder.IntegrationTests/
-```
-
-- Follow C# coding conventions and SOLID, KISS principles
+- Follow [C# coding conventions](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions) and SOLID, KISS principles
 - Add XML documentation for public APIs
 - Ensure all tests pass before submitting PRs
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU Lesser General Public License v3.0 (LGPL-3.0) - see the [LICENSE](LICENSE) file for details.
 
 ---
 

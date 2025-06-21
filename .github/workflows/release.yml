@@ -97,92 +97,90 @@ jobs:
               -d "$payload" \
               "https://api.github.com/gists/0ad369a5370256450204a3f97397cb22"
 
-      # Note: Integration tests are not included in code coverage calculation for the badge.
+  integration-tests:
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        provider: [SqlServer, MySql, PostgreSql]
+    env:
+      DatabaseProvider: ${{ matrix.provider }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-  # integration-tests:
-  #   runs-on: ubuntu-latest
-  #   needs: build
-  #   strategy:
-  #     matrix:
-  #       provider: [SqlServer, MySql, PostgreSql]
-  #   env:
-  #     DatabaseProvider: ${{ matrix.provider }}
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
+      - name: Download build output
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
 
-  #     - name: Download build output
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: build-output
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
 
-  #     - name: Setup .NET
-  #       uses: actions/setup-dotnet@v4
-  #       with:
-  #         dotnet-version: '8.0.x'
+      - name: Run integration tests for ${{ matrix.provider }}
+        run: dotnet test test/Q.FilterBuilder.IntegrationTests/Q.FilterBuilder.IntegrationTests.csproj --no-build --configuration Release --logger trx
 
-  #     - name: Run integration tests for ${{ matrix.provider }}
-  #       run: dotnet test test/Q.FilterBuilder.IntegrationTests/Q.FilterBuilder.IntegrationTests.csproj --no-build --configuration Release --logger trx
+  pack-and-publish:
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-  # pack-and-publish:
-  #   runs-on: ubuntu-latest
-  #   needs: [unit-tests, integration-tests]
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
 
-  #     - name: Setup .NET
-  #       uses: actions/setup-dotnet@v4
-  #       with:
-  #         dotnet-version: '8.0.x'
+      - name: Install git-cliff
+        uses: kenji-miyake/setup-git-cliff@v2
 
-  #     - name: Install git-cliff
-  #       uses: kenji-miyake/setup-git-cliff@v2
+      - name: Restore dependencies
+        run: dotnet restore FilterBuilder.sln
 
-  #     - name: Restore dependencies
-  #       run: dotnet restore FilterBuilder.sln
+      - name: Build
+        run: dotnet build FilterBuilder.sln --no-restore --configuration Release
 
-  #     - name: Build
-  #       run: dotnet build FilterBuilder.sln --no-restore --configuration Release
+      - name: Install MinVer for versioning
+        run: dotnet tool install --global minver-cli
 
-  #     - name: Install MinVer for versioning
-  #       run: dotnet tool install --global minver-cli
+      - name: Pack NuGet packages (auto-versioned)
+        run: |
+          for proj in src/*/*.csproj; do
+            dotnet pack "$proj" --configuration Release --output ./local-nuget
+          done
 
-  #     - name: Pack NuGet packages (auto-versioned)
-  #       run: |
-  #         for proj in src/*/*.csproj; do
-  #           dotnet pack "$proj" --configuration Release --output ./local-nuget
-  #         done
+      - name: Upload NuGet packages as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./local-nuget/*.nupkg
 
-  #     - name: Upload NuGet packages as artifact
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: nuget-packages
-  #         path: ./local-nuget/*.nupkg
+      - name: Publish to NuGet (only on release branch)
+        if: github.ref == 'refs/heads/release'
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          for pkg in ./local-nuget/*.nupkg; do
+            dotnet nuget push "$pkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
+          done
 
-  #     - name: Publish to NuGet (only on release branch)
-  #       if: github.ref == 'refs/heads/release'
-  #       env:
-  #         NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-  #       run: |
-  #         for pkg in ./local-nuget/*.nupkg; do
-  #           dotnet nuget push "$pkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
-  #         done
+      - name: Generate changelog (only on release branch)
+        if: github.ref == 'refs/heads/release'
+        run: |
+          git-cliff -o CHANGELOG.md
 
-  #     - name: Generate changelog (only on release branch)
-  #       if: github.ref == 'refs/heads/release'
-  #       run: |
-  #         git-cliff -o CHANGELOG.md
-
-  #     - name: Commit and push changelog (only on release branch)
-  #       if: github.ref == 'refs/heads/release'
-  #       run: |
-  #         git config user.name "github-actions"
-  #         git config user.email "github-actions@github.com"
-  #         git add CHANGELOG.md
-  #         git commit -m "chore(release): update changelog [skip ci]" || echo "No changes to commit"
-  #         git push origin release 
+      - name: Commit and push changelog (only on release branch)
+        if: github.ref == 'refs/heads/release'
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add CHANGELOG.md
+          git commit -m "chore(release): update changelog [skip ci]" || echo "No changes to commit"
+          git push origin release 
