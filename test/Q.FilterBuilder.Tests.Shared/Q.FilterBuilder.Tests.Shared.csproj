@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <IsTestProject>false</IsTestProject>
+    <AssemblyName>Q.FilterBuilder.Tests.Shared</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

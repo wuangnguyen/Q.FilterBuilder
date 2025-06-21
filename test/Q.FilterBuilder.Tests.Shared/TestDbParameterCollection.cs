@@ -4,7 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Q.FilterBuilder.Testing.AdoNet;
+namespace Q.FilterBuilder.Tests.Shared;
 
 [ExcludeFromCodeCoverage]
 public class TestDbParameter : DbParameter

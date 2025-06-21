@@ -1,7 +1,7 @@
 using System;
 using System.Data.Common;
 using Q.FilterBuilder.SqlServer.Extensions;
-using Q.FilterBuilder.Testing.AdoNet;
+using Q.FilterBuilder.Tests.Shared;
 using Xunit;
 
 namespace Q.FilterBuilder.SqlServer.Tests.Extensions;

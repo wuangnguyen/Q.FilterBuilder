@@ -1,7 +1,7 @@
 using System;
 using System.Data.Common;
 using Q.FilterBuilder.PostgreSql.Extensions;
-using Q.FilterBuilder.Testing.AdoNet;
+using Q.FilterBuilder.Tests.Shared;
 using Xunit;
 
 namespace Q.FilterBuilder.PostgreSql.Tests.Extensions;
