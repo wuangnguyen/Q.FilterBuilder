@@ -1,5 +1,8 @@
 name: CI/CD
 
+permissions:
+  contents: write
+
 on:
   push:
     branches:
@@ -156,4 +159,5 @@ jobs:
           git config user.email "github-actions@github.com"
           git add CHANGELOG.md
           git commit -m "chore(release): update changelog [skip ci]" || echo "No changes to commit"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
           git push origin release
