@@ -166,7 +166,12 @@ jobs:
           CHANGELOG_COMMIT=$(git rev-parse HEAD)
           git checkout master
           git pull origin master
-          git cherry-pick --strategy=theirs $CHANGELOG_COMMIT
+          git cherry-pick $CHANGELOG_COMMIT || (
+            # If conflict, always take the version from cherry-pick (release branch)
+            git checkout --theirs CHANGELOG.md
+            git add CHANGELOG.md
+            git cherry-pick --continue
+          )
           git push origin master
         env:
           GIT_AUTHOR_NAME: github-actions
