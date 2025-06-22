@@ -4,12 +4,17 @@ on:
   push:
     branches:
       - '**'
+    paths:
+      - '**/*.cs'
+      - 'src/**'
+      - 'test/**'
+      - 'FilterBuilder.sln'
+      - '.github/workflows/release.yml'
+  workflow_dispatch:
 
 jobs:
-  build:
+  unit-tests:
     runs-on: ubuntu-latest
-    outputs:
-      build-path: ${{ steps.set-build-path.outputs.build-path }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -27,41 +32,10 @@ jobs:
       - name: Build
         run: dotnet build FilterBuilder.sln --no-restore --configuration Release
 
-      - name: Set build path
-        id: set-build-path
-        run: echo "build-path=$(pwd)" >> $GITHUB_OUTPUT
-
-      - name: Upload build output
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-output
-          path: |
-            **/bin/Release/
-            **/obj/
-
-  unit-tests:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Download build output
-        uses: actions/download-artifact@v4
-        with:
-          name: build-output
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-
       - name: Run unit tests and collect coverage
         run: |
           mkdir -p coverage-results
-          dotnet test --configuration Release --collect:"XPlat Code Coverage" --settings coverlet.runsettings.xml --results-directory ./coverage-results --filter "FullyQualifiedName!~Q.FilterBuilder.IntegrationTests.Tests"
+          dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage" --settings coverlet.runsettings.xml --results-directory ./coverage-results --filter "FullyQualifiedName!~Q.FilterBuilder.IntegrationTests.Tests"
 
       - name: Install ReportGenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
@@ -73,8 +47,7 @@ jobs:
       - name: Extract coverage percentage
         id: extract_coverage
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libxml2-utils jq bc
+          sudo apt-get install -y libxml2-utils
           coverage_percentage=$(xmllint --xpath 'string(//coverage/@line-rate)' coverage-merged/Cobertura.xml)
           coverage_percentage=$(echo "$coverage_percentage * 100" | bc -l | xargs printf "%.2f")
           label="Code Coverage"
@@ -99,7 +72,6 @@ jobs:
 
   integration-tests:
     runs-on: ubuntu-latest
-    needs: build
     strategy:
       matrix:
         provider: [SqlServer, MySql, PostgreSql]
@@ -111,15 +83,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Download build output
-        uses: actions/download-artifact@v4
-        with:
-          name: build-output
-
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore FilterBuilder.sln
+
+      - name: Build
+        run: dotnet build FilterBuilder.sln --no-restore --configuration Release
 
       - name: Run integration tests for ${{ matrix.provider }}
         run: dotnet test test/Q.FilterBuilder.IntegrationTests/Q.FilterBuilder.IntegrationTests.csproj --no-build --configuration Release --logger trx
@@ -138,14 +111,14 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Install git-cliff
-        uses: kenji-miyake/setup-git-cliff@v2
-
       - name: Restore dependencies
         run: dotnet restore FilterBuilder.sln
 
       - name: Build
         run: dotnet build FilterBuilder.sln --no-restore --configuration Release
+
+      - name: Install git-cliff
+        uses: kenji-miyake/setup-git-cliff@v2
 
       - name: Install MinVer for versioning
         run: dotnet tool install --global minver-cli
@@ -183,4 +156,4 @@ jobs:
           git config user.email "github-actions@github.com"
           git add CHANGELOG.md
           git commit -m "chore(release): update changelog [skip ci]" || echo "No changes to commit"
-          git push origin release 
+          git push origin release
