@@ -9,51 +9,27 @@
 [![Multiple Databases](https://img.shields.io/badge/Supported%20Databases-SQL%20Server%20%7C%20MySQL%20%7C%20PostgreSQL-blue.svg)](#-packages)
 [![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/wuangnguyen/0ad369a5370256450204a3f97397cb22/raw/filter-builder-code-coverage.json)](https://github.com/wuangnguyen/Q.FilterBuilder)
 
-A powerful, flexible, and extensible .NET library for building dynamic and complex filters from end-users at runtime.
-
+A powerful, flexible, and extensible .NET library for building dynamic where clause.
 Give it a star if you find it useful! ❤️❤️❤️
 
-## 🚀 Why Q.FilterBuilder is Powerful
-
-### 🔧 **Fully Extensible — Customize Anything**
-- **Custom Type Converters**: Create custom converters for specialized data types
-- **Custom Rule Transformers**: Create custom operators for specialized queries
-- **Custom Database Providers**: Support multiple databases with custom formatting rules
+## 🚀 Why Q.FilterBuilder is Powerful?
 
 ### 🛸 **Universal UI Integration**
 - Compatible with universal UI query builders like **[jQuery QueryBuilder](https://querybuilder.js.org/)** - the most popular JavaScript query builder and **[React QueryBuilder](https://react-querybuilder.js.org/)** - modern React-based query builder
 - Direct JSON conversion support and configurable property mapping
 
-### ⚡ **Developer Experience**
+### ⚡ **Extensible Architecture & Developer Experience**
+- **Fully Extensible**: Easily add custom type converters, rule transformers, and database providers to match your business logic. Offers complete customization.
 - **SOLID Principles**: Clean separation of concerns, dependency injection ready
-- **Fluent API**: Readable, IntelliSense-friendly syntax
-- **SQL Injection Protection**: Automatic parameterization
-- **Automatic Type Conversion**: Smart handling of strings, dates, collections
-- **Two Building Flows**: Direct code creation OR JSON conversion
-- **Rich Documentation**: Provider-specific guides and examples
-
+- **Developer Experience**: Clean, fluent API, and SQL injection protection
 
 ### 🌏 Multiple Platform Support
-
-Q.FilterBuilder is built on **.NET Standard 2.1**, providing comprehensive cross-platform compatibility:
-
-#### 💻 **.NET Implementations**
-- **.NET 5.0+** - Modern cross-platform .NET
-- **.NET Core 3.1+** - Cross-platform .NET Core
 - **.NET Framework 4.6.1+** - Windows-based .NET Framework
+- **.NET Core 3.1+** - Cross-platform .NET Core
+- **.NET 5.0+** - Modern cross-platform .NET
 - **Mono** - Cross-platform open-source implementation
 
-#### 📱 **Application Types**
-- **Web Applications** - ASP.NET Core, ASP.NET MVC, Web API
-- **Desktop Applications** - WPF, WinForms, Avalonia, MAUI
-- **Console Applications** - Command-line tools and utilities
-- **Microservices** - Containerized and serverless architectures
-- **Background Services** - Windows Services, Linux daemons, hosted services
-
 ### 📎 Multiple ORM Support
-
-Output from Q.FilterBuilder can be executed with any ORM that can execute raw SQL queries. 
-
 - **Entity Framework**: Full support for LINQ and database queries
 - **Dapper**: Dynamic SQL execution with micro-ORM capabilities
 - **ADO.NET**: Low-level database access for maximum flexibility
@@ -98,20 +74,27 @@ services.AddSqlServerFilterBuilder();
 
 // 2. Build filter rules
 
-// using FluentRuleBuilder
-var group = new FluentRuleBuilder()
-    .Where("Age", "greater_or_equal", 18)
-    .Where("Name", "contains", "John")
-    .Where("Status", "in", new[] { "Active", "Pending" })
-    .Where("CreatedDate", "between", new[] { "2023-01-01", "2023-12-31" })
-    .BeginGroup("OR")
-        .Where("Department", "equal", "IT")
-        .Where("Role", "equal", "Admin")
-    .EndGroup()
-    .Where("Email", "is_not_null")
-    .Build();
+// Using JSON converter (this requires the additional Q.FilterBuilder.JsonConverter package)
+var json = "<json string from UI>";
+var group = JsonSerializer.Deserialize<FilterGroup>(json, new JsonSerializerOptions
+{
+    Converters = { new QueryBuilderConverter() }
+});
 
-// OR build filters manually
+// OR using built-in fluent API rule builder
+// var group = new FluentRuleBuilder()
+//     .Where("Age", "greater_or_equal", 18)
+//     .Where("Name", "contains", "John")
+//     .Where("Status", "in", new[] { "Active", "Pending" })
+//     .Where("CreatedDate", "between", new[] { "2023-01-01", "2023-12-31" })
+//     .BeginGroup("OR")
+//         .Where("Department", "equal", "IT")
+//         .Where("Role", "equal", "Admin")
+//     .EndGroup()
+//     .Where("Email", "is_not_null")
+//     .Build();
+
+// OR
 // var group = new FilterGroup("AND");
 // group.Rules.Add(new FilterRule("Age", "greater_or_equal", 18));
 // group.Rules.Add(new FilterRule("Name", "contains", "John"));
@@ -125,12 +108,7 @@ var group = new FluentRuleBuilder()
 // group.Groups.Add(nestedGroup);
 // group.Rules.Add(new FilterRule("Email", "is_not_null"));
 
-// OR build filters using JSON converter, this requires the additional Q.FilterBuilder.JsonConverter package
-// var json = "<json string from UI>";
-// var group = JsonSerializer.Deserialize<FilterGroup>(json, new JsonSerializerOptions
-// {
-//     Converters = { new QueryBuilderConverter() }
-// });
+
 
 // 3. Generate where clause
 var (whereClause, parameters) = _filterBuilder.BuildForEf(group); // see more example for other ORMs in the intergration tests project
@@ -144,33 +122,10 @@ var (whereClause, parameters) = _filterBuilder.BuildForEf(group); // see more ex
 var sql = $"SELECT * FROM Users WHERE {whereClause}";
 var users = await _context.Set<User>().FromSqlRaw(sql, parameters).ToListAsync()
 
-// 5. Happy coding!
+// 5. Done!
 ```
 
 📖 **Complete Reference**: [Core Package Guide](src/Q.FilterBuilder.Core/README.md)
-
-## 🔄 How It Works
-
-### Query Building Flows
-
-**Flow 1: Direct FilterGroup Creation**
-1. **Create**: Build `FilterGroup` with `FilterRule` conditions directly
-2. **Transform**: Rule transformers convert rules to database-specific queries
-3. **Format**: Database providers handle field/parameter formatting
-4. **Output**: Generated SQL/LINQ with parameterized values
-
-**Flow 2: JSON to FilterGroup**
-1. **Parse**: Convert jQuery QueryBuilder JSON to `FilterGroup`
-2. **Transform**: Rule transformers convert rules to database-specific queries
-3. **Format**: Database providers handle field/parameter formatting
-4. **Output**: Generated SQL/LINQ with parameterized values
-
-### Component Responsibilities
-- **Database Providers**: Handle database-specific formatting and syntax
-- **Rule Transformers**: Convert filter rules to query conditions
-- **Type Conversion**: Ensure values match expected data types
-- **FilterBuilder**: Orchestrates the entire building process
-
 
 ## 📦 Packages
 
@@ -182,7 +137,7 @@ The library is organized into several NuGet packages:
 | `Q.FilterBuilder.SqlServer` | SQL Server specific database provider | SQL Server database queries |
 | `Q.FilterBuilder.MySql` | MySQL specific database provider | MySQL database queries |
 | `Q.FilterBuilder.PostgreSql` | PostgreSQL specific database provider | PostgreSQL database queries |
-| `Q.FilterBuilder.Linq` | LINQ expression database provider | In-memory filtering and Entity Framework |
+| `Q.FilterBuilder.Linq` | LINQ expression database provider | Integrate with [Dynamic LINQ](https://dynamic-linq.net/) |
 | `Q.FilterBuilder.JsonConverter` | JSON to FilterGroup conversion | Web APIs and jQuery QueryBuilder integration |
 
 ## 🎯 Built-In Operators, Plus Support For Your Own Custom Logic
@@ -190,11 +145,12 @@ The library is organized into several NuGet packages:
 | Rule Transformer | Description | Example |
 |------------------|-------------|---------|
 | `equal`, `not_equal` | Equality/inequality | `Age = 25` |
-| `greater`, `less` | Comparisons | `Price > 100` |
+| `greater`, `less`, `greater_or_equal`, `less_or_equal` | Comparisons | `Price > 100`, `Age >= 18` |
 | `between`, `not_between` | Range checks | `Date BETWEEN '2023-01-01' AND '2023-12-31'` |
 | `in`, `not_in` | Collection membership | `Status IN ('Active', 'Pending')` |
 | `contains`, `begins_with`, `ends_with` | String operations | `Name LIKE '%John%'` |
 | `is_null`, `is_not_null` | Null checks | `Email IS NOT NULL` |
+| `date_diff` | Date difference | `DATEDIFF(day, CreatedDate, GETDATE()) = 30` |
 
 📖 **Complete Reference**: [Rule Transformers Guide](src/Q.FilterBuilder.Core/README.md#custom-rule-transformers)
 
@@ -293,4 +249,4 @@ This project is licensed under the GNU Lesser General Public License v3.0 (LGPL-
 
 **Made with ❤️ by Quang Nguyen**
 
-*Q.FilterBuilder - Powerful, flexible, and extensible dynamic query building for .NET*
+*Q.FilterBuilder - Powerful, flexible, and extensible dynamic where clause builder for .NET*
