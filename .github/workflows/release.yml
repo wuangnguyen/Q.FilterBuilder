@@ -156,4 +156,5 @@ jobs:
           git config user.email "github-actions@github.com"
           git add CHANGELOG.md
           git commit -m "chore(release): update changelog [skip ci]" || echo "No changes to commit"
+          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}
           git push origin release
