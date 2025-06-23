@@ -1,107 +1,23 @@
-name: CI/CD
+name: Release
 
 permissions:
   contents: write
 
 on:
-  push:
-    branches:
-      - '**'
-    paths:
-      - '**/*.cs'
-      - 'src/**'
-      - 'test/**'
-      - 'FilterBuilder.sln'
-      - '.github/workflows/release.yml'
   workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch, commit SHA, or tag to checkout'
+        required: false
+        default: ''
 
 jobs:
   unit-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-
-      - name: Restore dependencies
-        run: dotnet restore FilterBuilder.sln
-
-      - name: Build
-        run: dotnet build FilterBuilder.sln --no-restore --configuration Release
-
-      - name: Run unit tests and collect coverage
-        run: |
-          mkdir -p coverage-results
-          dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage" --settings coverlet.runsettings.xml --results-directory ./coverage-results --filter "FullyQualifiedName!~Q.FilterBuilder.IntegrationTests.Tests"
-
-      - name: Install ReportGenerator
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
-
-      - name: Merge coverage reports
-        run: |
-          reportgenerator -reports:coverage-results/**/coverage.cobertura.xml -targetdir:coverage-merged -reporttypes:"Cobertura"
-
-      - name: Extract coverage percentage
-        id: extract_coverage
-        run: |
-          sudo apt-get install -y libxml2-utils
-          coverage_percentage=$(xmllint --xpath 'string(//coverage/@line-rate)' coverage-merged/Cobertura.xml)
-          coverage_percentage=$(echo "$coverage_percentage * 100" | bc -l | xargs printf "%.2f")
-          label="Code Coverage"
-          color="brightgreen"
-          coverage_json=$(jq -nc --arg schemaVersion "1" --arg label "$label" --arg message "${coverage_percentage}%" --arg color "$color" '{schemaVersion: ($schemaVersion|tonumber), label: $label, message: $message, color: $color}')
-          echo "coverage_percentage=$coverage_percentage" >> $GITHUB_OUTPUT
-          echo "coverage_json=$coverage_json" >> $GITHUB_OUTPUT
-          echo "Coverage JSON: $coverage_json"
-
-      - name: Post coverage badge to GitHub Gist
-        if: steps.extract_coverage.outputs.coverage_json != ''
-        run: |
-            echo "Posting coverage badge to GitHub Gist..."
-            coverage_json_string=$(echo '${{ steps.extract_coverage.outputs.coverage_json }}' | jq -c .)
-            payload=$(jq -nc --arg content "$coverage_json_string" '{"files": {"filter-builder-code-coverage.json": {"content": $content}}}')
-            curl -X PATCH \
-              -H "Authorization: token ${{ secrets.GIST_AUTH_TOKEN }}" \
-              -H "Accept: application/vnd.github+json" \
-              -H "User-Agent: github-actions" \
-              -d "$payload" \
-              "https://api.github.com/gists/0ad369a5370256450204a3f97397cb22"
-
+    uses: ./.github/workflows/unit-tests.yml
   integration-tests:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        provider: [SqlServer, MySql, PostgreSql]
-    env:
-      DatabaseProvider: ${{ matrix.provider }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-
-      - name: Restore dependencies
-        run: dotnet restore FilterBuilder.sln
-
-      - name: Build
-        run: dotnet build FilterBuilder.sln --no-restore --configuration Release
-
-      - name: Run integration tests for ${{ matrix.provider }}
-        run: dotnet test test/Q.FilterBuilder.IntegrationTests/Q.FilterBuilder.IntegrationTests.csproj --no-build --configuration Release --logger trx
+    uses: ./.github/workflows/integration-tests.yml
 
   pack-and-publish:
-    if: github.ref == 'refs/heads/release'
     runs-on: ubuntu-latest
     needs: [unit-tests, integration-tests]
     steps:
@@ -109,6 +25,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.inputs.ref != '' && github.event.inputs.ref || github.ref_name }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -121,11 +38,19 @@ jobs:
       - name: Build
         run: dotnet build FilterBuilder.sln --no-restore --configuration Release
 
-      - name: Install git-cliff
-        uses: kenji-miyake/setup-git-cliff@v2
-
       - name: Install MinVer for versioning
         run: dotnet tool install --global minver-cli
+
+      - name: Get version from MinVer
+        id: minver
+        run: echo "version=$(minver -t v)" >> $GITHUB_OUTPUT
+
+      - name: Abort if pre-release (alpha/beta/rc)
+        run: |
+          if [[ "${{ steps.minver.outputs.version }}" == *-* ]]; then
+            echo "Pre-release version detected: ${{ steps.minver.outputs.version }}. Skipping release pipeline."
+            exit 0
+          fi
 
       - name: Pack NuGet packages (auto-versioned)
         run: |
@@ -139,7 +64,7 @@ jobs:
           name: nuget-packages
           path: ./local-nuget/*.nupkg
 
-      - name: Publish to NuGet (only on release branch)
+      - name: Publish to NuGet
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
@@ -147,34 +72,20 @@ jobs:
             dotnet nuget push "$pkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
           done
 
-      - name: Generate changelog (only on release branch)
-        run: |
-          git-cliff -o CHANGELOG.md
+      - name: Generate a changelog
+        uses: orhun/git-cliff-action@v3
+        with:
+          config: cliff.toml
+          args: --tag ${{ steps.minver.outputs.version }} --verbose
+        env:
+          OUTPUT: CHANGELOG.md
+          GITHUB_REPO: ${{ github.repository }}
 
-      - name: Commit and push changelog (only on release branch)
+      - name: Commit and push changelog
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add CHANGELOG.md
           git commit -m "chore(release): update changelog [skip ci]" || echo "No changes to commit"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-          git push origin release
-
-      - name: Cherry-pick changelog commit to master
-        run: |
-          git fetch origin master
-          CHANGELOG_COMMIT=$(git rev-parse HEAD)
-          git checkout master
-          git pull origin master
-          git cherry-pick $CHANGELOG_COMMIT || (
-            # If conflict, always take the version from cherry-pick (release branch)
-            git checkout --theirs CHANGELOG.md
-            git add CHANGELOG.md
-            git cherry-pick --continue
-          )
           git push origin master
-        env:
-          GIT_AUTHOR_NAME: github-actions
-          GIT_AUTHOR_EMAIL: github-actions@github.com
-          GIT_COMMITTER_NAME: github-actions
-          GIT_COMMITTER_EMAIL: github-actions@github.com

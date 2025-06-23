@@ -1,0 +1,75 @@
+name: Unit Tests
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+    paths:
+      - '**/*.cs'
+      - 'src/**'
+      - 'test/**'
+  workflow_dispatch:
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore FilterBuilder.sln
+
+      - name: Build
+        run: dotnet build FilterBuilder.sln --no-restore --configuration Release
+
+      - name: Run unit tests and collect coverage
+        run: |
+          mkdir -p coverage-results
+          dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage" --settings coverlet.runsettings.xml --results-directory ./coverage-results --filter "FullyQualifiedName!~Q.FilterBuilder.IntegrationTests.Tests"
+
+      - name: Install ReportGenerator
+        if: github.event_name == 'push'
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      - name: Merge coverage reports
+        if: github.event_name == 'push'
+        run: |
+          reportgenerator -reports:coverage-results/**/coverage.cobertura.xml -targetdir:coverage-merged -reporttypes:"Cobertura"
+
+      - name: Extract coverage percentage
+        if: github.event_name == 'push'
+        id: extract_coverage
+        run: |
+          sudo apt-get install -y libxml2-utils
+          coverage_percentage=$(xmllint --xpath 'string(//coverage/@line-rate)' coverage-merged/Cobertura.xml)
+          coverage_percentage=$(echo "$coverage_percentage * 100" | bc -l | xargs printf "%.2f")
+          label="Code Coverage"
+          color="brightgreen"
+          coverage_json=$(jq -nc --arg schemaVersion "1" --arg label "$label" --arg message "${coverage_percentage}%" --arg color "$color" '{schemaVersion: ($schemaVersion|tonumber), label: $label, message: $message, color: $color}')
+          echo "coverage_percentage=$coverage_percentage" >> $GITHUB_OUTPUT
+          echo "coverage_json=$coverage_json" >> $GITHUB_OUTPUT
+          echo "Coverage JSON: $coverage_json"
+
+      - name: Post coverage badge to GitHub Gist
+        if: github.event_name == 'push' && steps.extract_coverage.outputs.coverage_json != ''
+        run: |
+            echo "Posting coverage badge to GitHub Gist..."
+            coverage_json_string=$(echo '${{ steps.extract_coverage.outputs.coverage_json }}' | jq -c .)
+            payload=$(jq -nc --arg content "$coverage_json_string" '{"files": {"filter-builder-code-coverage.json": {"content": $content}}}')
+            curl -X PATCH \
+              -H "Authorization: token ${{ secrets.GIST_AUTH_TOKEN }}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "User-Agent: github-actions" \
+              -d "$payload" \
+              "https://api.github.com/gists/0ad369a5370256450204a3f97397cb22"
