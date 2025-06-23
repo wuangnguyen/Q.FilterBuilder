@@ -2,59 +2,37 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-### 🚀 Features
+## [1.0.0] - 2025-06-22
 
-- *(postgresql)* Implement list of built-in rule transformers
-- *(mysql)* Implement list of built-in rule transformers
-- *(linq)* Add date_diff operator and modernize extension methods with fluent API
-- [**breaking**] Change positional parameter from local to global indices
-- *(Extensions)* Add extension methods for converting build output to EF, Dapper, and ADO.NET compatibility
-- *(Integration Tests)* Add integration tests for real database flows
-- Add LGPL v3 license
-- Add logo and banner
+### Added
 
-### 🐛 Bug Fixes
+- Add logo and banner ([780b71d](https://github.com/wuangnguyen/DynamicWhereBuilder/commit/780b71ddcc4ad34eb18eb90cd56fb4d4041e4808) )
+- Add LGPL v3 license ([bac41a4](https://github.com/wuangnguyen/DynamicWhereBuilder/commit/bac41a4b1a235be31e8fff1e2c33bd57cb1f7aad) )
+- Add automated code coverage badge and improve coverage accuracy ([c609c0f](https://github.com/wuangnguyen/DynamicWhereBuilder/commit/c609c0fde69e2dc476178bee00d0aa50337edd9c) )
+- Add date_diff operator and modernize extension methods with fluent API ([eb55db3](https://github.com/wuangnguyen/DynamicWhereBuilder/commit/eb55db36538b8aab395e490e26a3ed8f3a6499b8) )
 
-- Handle format navigation properties in field name
-- *(ci)* Ensure test jobs checkout source code before running dotnet test
-- *(Integration Tests)* Prioritize environment variable over local configuration
-- *(ci)* Correct git-cliff install path in GitHub Actions workflow
-- *(ci)* Use setup-git-cliff action for reliable git-cliff installation
-- Display code coverage badge in the README file
-- *(ci)* Always take the version from the release branch to auto resolve conflict
+### Changed
 
-### 🚜 Refactor
+- Update README.md ([a96641b](https://github.com/wuangnguyen/DynamicWhereBuilder/commit/a96641b5ad959a0c269d28a9556c23d43d21edf3) )
+- Add integration tests for real database flows ([1660854](https://github.com/wuangnguyen/DynamicWhereBuilder/commit/166085469ea08f5effb4fa14ddf554e97803e62f) )
+- Add extension methods for converting build output to EF, Dapper, and ADO.NET compatibility ([baf92c0](https://github.com/wuangnguyen/DynamicWhereBuilder/commit/baf92c0040fa32f6fc13b7e2c60a4439d0117d01) )
+- Change positional parameter from local to global indices ([9965255](https://github.com/wuangnguyen/DynamicWhereBuilder/commit/996525558ba4ffdce26c92a60d0ffb416c0904df) )
+- Implement list of built-in rule transformers ([45648ef](https://github.com/wuangnguyen/DynamicWhereBuilder/commit/45648efcbbad5bdf34363e0f111b978030363e7a) )
+- Implement list of built-in rule transformers ([2e08977](https://github.com/wuangnguyen/DynamicWhereBuilder/commit/2e08977e815e7b7f361e1bd6d8317fb49180dc4b) )
+- Modernize API with options pattern and eliminate complex copying ([01cf695](https://github.com/wuangnguyen/DynamicWhereBuilder/commit/01cf6958f08b3409a2461bea12892fa5ee39a73a) )
+- Improve documents ([f35b899](https://github.com/wuangnguyen/DynamicWhereBuilder/commit/f35b899a9cdfee6eef5906c4bceb5c3e812c8dc7) )
+- Update documentation for IQueryFormatProvider interface rename ([72ee026](https://github.com/wuangnguyen/DynamicWhereBuilder/commit/72ee0264bb0025c41756e087fd1fe28d5da3e3c3) )
+- Flatten directory structure ([cbf0a79](https://github.com/wuangnguyen/DynamicWhereBuilder/commit/cbf0a79e35bf6a88fe135e38b0e1daf4b276d61f) )
+- New project structure and introduce rule transformers ([dedc031](https://github.com/wuangnguyen/DynamicWhereBuilder/commit/dedc031e86dd3b500fef9f11610ea1bfbf04a7ee) )
 
-- New project structure and introduce rule transformers
-- Flatten directory structure
-- *(sqlserver)* Modernize API with options pattern and eliminate complex copying
+### Fixed
 
-### 📚 Documentation
+- Display code coverage badge in the README file ([115289d](https://github.com/wuangnguyen/DynamicWhereBuilder/commit/115289dd0c72c6c2154e6f957fa30133e8e5d49a) )
+- Prioritize environment variable over local configuration ([1e9e60a](https://github.com/wuangnguyen/DynamicWhereBuilder/commit/1e9e60afa10037e0b1ce8c7ebc89180e5648ece4) )
+- Handle format navigation properties in field name ([ed82def](https://github.com/wuangnguyen/DynamicWhereBuilder/commit/ed82defd30162e0d270989230dea87c46d5c130f) )
 
-- Update documentation for IQueryFormatProvider interface rename
-- Improve documents
-- Update README.md
-
-### 🧪 Testing
-
-- Improve tests
-- Remove coverlet.runsettings
-- Exclude test helper classes
-
-### ⚙️ Miscellaneous Tasks
-
-- Update workflow and scripts for improved local/CI packing and changelog automation
-- Add automated code coverage badge and improve coverage accuracy
-- *(ci)* Extract coverage percentage and post coverage badge to GitHub Gist
-- Only trigger the pipeline when there are changes to .cs files, the src or test directories, the solution file, or the workflow file itself
-- Grant access for github-actions[bot] (#1)
-- *(release)* Update changelog [skip ci]
-- *(ci)* Add cherry-pick changelog commit to master
-- *(release)* Update changelog [skip ci]
-- *(release)* Update changelog [skip ci]
-- Grant access for github-actions[bot]
-- *(release)* Update changelog [skip ci]
 
 <!-- generated by git-cliff -->
