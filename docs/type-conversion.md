@@ -33,6 +33,7 @@ Interface for implementing custom type converters.
 ```csharp
 public interface ITypeConverter<T>
 {
+    // The `metadata` parameter allows you to pass additional information to the type converter. This is useful for providing context-specific conversion logic, such as custom date formats or currency symbols.
     T Convert(object? value, Dictionary<string, object?>? metadata = null);
 }
 ```

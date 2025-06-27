@@ -15,7 +15,7 @@ The base interface that all rule transformers must implement.
 ```csharp
 public interface IRuleTransformer
 {
-    (string query, object[]? parameters) Transform(FilterRule rule, string fieldName, string parameterName);
+    (string query, object[]? parameters) Transform(FilterRule rule, string fieldName, int parameterIndex, IQueryFormatProvider formatProvider);
 }
 ```
 
@@ -35,19 +35,52 @@ Provides common orchestration logic and default parameter building behavior.
 ```csharp
 public abstract class BaseRuleTransformer : IRuleTransformer
 {
-    public virtual (string query, object[]? parameters) Transform(FilterRule rule, string fieldName, string parameterName)
+    public class TransformContext
     {
-        // Step 1: Build parameters from rule value and metadata
-        var parameters = BuildParameters(rule.Value, rule.Metadata);
-
-        // Step 2: Build query using field name and parameter name
-        var query = BuildQuery(fieldName, parameterName, context);
-
-        return (query, parameters);
+        public object[]? Parameters { get; set; }
+        public Dictionary<string, object?>? Metadata { get; set; }
+        public int ParameterIndex { get; set; }
+        public IQueryFormatProvider? FormatProvider { get; set; }
     }
 
-    protected virtual object[]? BuildParameters(object? value, Dictionary<string, object?>? metadata);
-    protected abstract string BuildQuery(string fieldName, string parameterName, TransformContext context);
+    public virtual (string query, object[]? parameters) Transform(FilterRule rule, string fieldName, int parameterIndex, IQueryFormatProvider formatProvider)
+    {
+        var metadata = rule.Metadata != null
+            ? new Dictionary<string, object?>(rule.Metadata)
+            : new Dictionary<string, object?>();
+
+        if (!metadata.ContainsKey("type"))
+        {
+            metadata["type"] = rule.Type;
+        }
+
+        rule.Metadata = metadata;
+
+        var context = new TransformContext
+        {
+            Metadata = rule.Metadata,
+            ParameterIndex = parameterIndex,
+            FormatProvider = formatProvider
+        };
+
+        context.Parameters = BuildParameters(rule.Value, rule.Metadata);
+
+        var query = BuildQuery(fieldName, context);
+
+        return (query, context.Parameters);
+    }
+
+    protected virtual object[]? BuildParameters(object? value, Dictionary<string, object?>? metadata)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+
+        return new[] { value };
+    }
+
+    protected abstract string BuildQuery(string fieldName, TransformContext context);
 }
 ```
 
@@ -71,17 +104,17 @@ public class BasicRuleTransformer : BaseRuleTransformer
     {
         if (value == null) return null;
 
-        // Basic operators cannot compare with collections
         if (value is IEnumerable && value is not string)
         {
-            throw new ArgumentException($"Basic operator '{_operator}' cannot compare with collections.");
+            throw new ArgumentException($"Basic operator '{_operator}' cannot compare with collections. Use collection-specific operators instead.", nameof(value));
         }
 
         return new[] { value };
     }
 
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
+        var parameterName = context.FormatProvider!.FormatParameterName(context.ParameterIndex);
         return $"{fieldName} {_operator} {parameterName}";
     }
 }
@@ -111,10 +144,10 @@ public abstract class SimpleNoParameterTransformer : BaseRuleTransformer
 {
     protected override object[]? BuildParameters(object? value, Dictionary<string, object?>? metadata)
     {
-        return null; // No parameters needed
+        return null;
     }
 
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
         return BuildSimpleQuery(fieldName);
     }
@@ -141,32 +174,51 @@ Base class for IN and NOT IN operators that handle collections.
 ```csharp
 public abstract class InTransformerBase : BaseRuleTransformer
 {
+    private readonly string _operatorName;
+
+    protected InTransformerBase(string operatorName)
+    {
+        _operatorName = operatorName ?? throw new ArgumentNullException(nameof(operatorName));
+    }
+
     protected override object[]? BuildParameters(object? value, Dictionary<string, object?>? metadata)
     {
         if (value == null)
-            throw new ArgumentNullException(nameof(value), "IN operator requires a non-null value");
+        {
+            throw new ArgumentNullException(nameof(value), $"{_operatorName} operator requires a non-null value");
+        }
 
-        // Handle collections
         if (value is IEnumerable enumerable && value is not string)
         {
             var values = new List<object>();
             foreach (var item in enumerable)
+            {
                 values.Add(item);
+            }
 
             if (values.Count == 0)
-                throw new ArgumentException("IN operator requires at least one value");
+            {
+                throw new ArgumentException($"{_operatorName} operator requires at least one value", nameof(value));
+            }
 
             return values.ToArray();
         }
 
-        // Handle single value
         return new[] { value };
     }
 
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
-        var parameterPlaceholders = GenerateParameterPlaceholders(parameterName, context.Parameters.Length);
+        if (context.Parameters == null || context.Parameters.Length == 0)
+        {
+            throw new InvalidOperationException($"{_operatorName} operator requires parameters");
+        }
+
+        var parameterPlaceholders = Enumerable.Range(context.ParameterIndex, context.Parameters.Length)
+            .Select(index => context.FormatProvider!.FormatParameterName(index))
+            .ToArray();
         var parameterList = string.Join(", ", parameterPlaceholders);
+
         return BuildInQuery(fieldName, parameterList);
     }
 
@@ -194,8 +246,9 @@ public class FullTextSearchTransformer : BaseRuleTransformer
         return new[] { string.Join(" AND ", processedTerms) };
     }
 
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
+        var parameterName = context.FormatProvider!.FormatParameterName(context.ParameterIndex);
         return $"CONTAINS({fieldName}, {parameterName})";
     }
 }
@@ -215,9 +268,11 @@ public class JsonContainsTransformer : BaseRuleTransformer
         return new[] { jsonPath, value };
     }
 
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
-        return $"JSON_CONTAINS({fieldName}, {parameterName}1, {parameterName}0)";
+        var parameterName0 = context.FormatProvider!.FormatParameterName(context.ParameterIndex);
+        var parameterName1 = context.FormatProvider!.FormatParameterName(context.ParameterIndex + 1);
+        return $"JSON_CONTAINS({fieldName}, {parameterName1}, {parameterName0})";
     }
 }
 ```
@@ -247,11 +302,15 @@ public class DateRangeTransformer : BaseRuleTransformer
         return new object[] { startDate, endDate };
     }
 
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
-        return $"{fieldName} >= {parameterName}0 AND {fieldName} <= {parameterName}1";
+        var parameterName0 = context.FormatProvider!.FormatParameterName(context.ParameterIndex);
+        var parameterName1 = context.FormatProvider!.FormatParameterName(context.ParameterIndex + 1);
+        return $"{fieldName} >= {parameterName0} AND {fieldName} <= {parameterName1}";
     }
 }
+
+```
 ```
 
 ## Registration and Configuration
@@ -490,8 +549,9 @@ public class LikeTransformer : BaseRuleTransformer
         return new[] { pattern };
     }
 
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
+        var parameterName = context.FormatProvider!.FormatParameterName(context.ParameterIndex);
         return $"{fieldName} LIKE {parameterName}";
     }
 }
@@ -505,8 +565,9 @@ public class IContainsTransformer : BaseRuleTransformer
         return new[] { $"%{value.ToString()!.ToLowerInvariant()}%" };
     }
 
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
+        var parameterName = context.FormatProvider!.FormatParameterName(context.ParameterIndex);
         return $"LOWER({fieldName}) LIKE {parameterName}";
     }
 }
@@ -534,9 +595,11 @@ public class RangeWithToleranceTransformer : BaseRuleTransformer
         return new object[] { minValue, maxValue };
     }
 
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
-        return $"{fieldName} BETWEEN {parameterName}0 AND {parameterName}1";
+        var parameterName0 = context.FormatProvider!.FormatParameterName(context.ParameterIndex);
+        var parameterName1 = context.FormatProvider!.FormatParameterName(context.ParameterIndex + 1);
+        return $"{fieldName} BETWEEN {parameterName0} AND {parameterName1}";
     }
 }
 ```
@@ -558,8 +621,9 @@ public class WithinLastDaysTransformer : BaseRuleTransformer
         return new[] { cutoffDate };
     }
 
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
+        var parameterName = context.FormatProvider!.FormatParameterName(context.ParameterIndex);
         return $"{fieldName} >= {parameterName}";
     }
 }
@@ -579,9 +643,12 @@ public class SameDayTransformer : BaseRuleTransformer
         return new object[] { startOfDay, endOfDay };
     }
 
-    protected override string BuildQuery(string fieldName, string parameterName, TransformContext context)
+    protected override string BuildQuery(string fieldName, TransformContext context)
     {
-        return $"{fieldName} >= {parameterName}0 AND {fieldName} <= {parameterName}1";
+        var parameterName0 = context.FormatProvider!.FormatParameterName(context.ParameterIndex);
+        var parameterName1 = context.FormatProvider!.FormatParameterName(context.ParameterIndex + 1);
+        return $"{fieldName} >= {parameterName0} AND {fieldName} <= {parameterName1}";
     }
 }
+```
 ```

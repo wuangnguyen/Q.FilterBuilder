@@ -20,7 +20,7 @@ public FluentRuleBuilder Where(string fieldName, string @operator, object? value
 - `fieldName`: The field name to filter on
 - `operator`: The operator to use (e.g., "equal", "greater", "contains")
 - `value`: The value to compare against
-- `explicitType`: Optional explicit type for type conversion
+- `explicitType`: The explicit type for the value. This allows you to specify the target type for value conversion. This is particularly useful when the value is a string that needs to be converted to a specific data type, such as a `DateTime` or a number.
 
 **Example:**
 ```csharp

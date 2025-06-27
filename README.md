@@ -4,13 +4,14 @@
 ---
 
 [![.NET Standard](https://img.shields.io/badge/.NET%20Standard-2.1-blue.svg)](https://dotnet.microsoft.com/)
-[![License](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Cross Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-blue.svg)](https://dotnet.microsoft.com/)
 [![Multiple Databases](https://img.shields.io/badge/Supported%20Databases-SQL%20Server%20%7C%20MySQL%20%7C%20PostgreSQL-blue.svg)](#-packages)
 [![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/wuangnguyen/0ad369a5370256450204a3f97397cb22/raw/filter-builder-code-coverage.json)](https://github.com/wuangnguyen/Q.FilterBuilder)
 
-A powerful, flexible, and extensible .NET library for building dynamic where clause.
-Give it a star if you find it useful! ❤️❤️❤️
+Q.FilterBuilder is a powerful, flexible, and extensible .NET library that simplifies the process of building dynamic `WHERE` clauses for your data queries. It provides a fluent API that allows you to create complex filtering rules with ease. The library is designed to be highly extensible, allowing you to add custom type converters, rule transformers, and database providers to match your specific business logic. It also offers built-in support for popular UI query builders like jQuery QueryBuilder and React QueryBuilder, making it easy to integrate with your existing applications.
+
+Give it a ⭐ if you find it useful! ❤️❤️❤️
 
 ## 🚀 Why Q.FilterBuilder is Powerful?
 
@@ -235,18 +236,16 @@ dotnet test test/Q.FilterBuilder.IntegrationTests/
 
 ## 🤝 Contributing
 
-We welcome contributions! Please follow these guidelines:
+Contributions are welcome! If you'd like to contribute, please follow these steps:
 
-- Follow [C# coding conventions](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions) and SOLID, KISS principles
-- Add XML documentation for public APIs
-- Ensure all tests pass before submitting PRs
+1.  Fork the repository.
+2.  Create a new branch for your feature or bug fix.
+3.  Make your changes and commit them with a descriptive message.
+4.  Push your changes to your fork.
+5.  Create a pull request to the main repository.
+
+Please ensure that your code adheres to the existing coding style and that all tests pass before submitting a pull request.
 
 ## 📄 License
 
-This project is licensed under the GNU Lesser General Public License v3.0 (LGPL-3.0) - see the [LICENSE](LICENSE) file for details.
-
----
-
-**Made with ❤️ by Quang Nguyen**
-
-*Q.FilterBuilder - Powerful, flexible, and extensible dynamic where clause builder for .NET*
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
